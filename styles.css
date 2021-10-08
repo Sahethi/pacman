@@ -1,0 +1,25 @@
+body {
+    background-color: black;
+}
+  
+#pacman {
+    height: 470px;
+    width: 382px;
+    border-radius: 5px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -235px 0 0 -191px;
+}
+  
+  
+body {
+    width: 342px;
+    margin: 0px auto;
+    font-family: sans-serif;
+}
+  
+a{
+    text-decoration: none;
+    color: #0000FF;
+}
