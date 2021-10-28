@@ -14,7 +14,8 @@ const app = new Vue({
      
     computed: {
       transitionPacman() {
-        return this.password_match ? 'pacman-success' : 'pacman-invalid';
+        return 'pacman-success';
+        // return this.password_match ? 'pacman-success' : 'pacman-invalid';
       } },
   
   
@@ -25,9 +26,9 @@ const app = new Vue({
   
         if (this.password_entered !== this.password_stored) {
           this.password_invalid = true;
-          this.$refs.start.value = 'Incorrect Password!';
+          // this.$refs.start.value = 'Incorrect Password!';
         } else {
-          this.$refs.start.value = 'Logging in';
+          // this.$refs.start.value = 'Logging in';
         }
       },
   
@@ -44,8 +45,8 @@ const app = new Vue({
         if (this.password_match) {
           this.logged_in = true;
         } else {
-          this.$refs.start.value = 'Try Again';
-          if (this.password_tries === 2) this.$refs.start.value = 'Try "pacman"';
+          // this.$refs.start.value = 'Try Again';
+          // if (this.password_tries === 2) this.$refs.start.value = 'Try "pacman"';
         }
   
         setTimeout(() => this.$refs.password.focus(), 100);
@@ -54,7 +55,7 @@ const app = new Vue({
       runPacman(e) {
         e.preventDefault();
         this.animate_pacman = true;
-        this.$refs.start.value = 'Checking...';
+        // this.$refs.start.value = 'Checking...';
       },
   
       startOver() {

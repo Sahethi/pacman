@@ -92,7 +92,6 @@ function audioTrack(url, volume) {
     }
 }
 
-
 function preloadAudio() {
 
     this.credit            = new audioTrack('sounds/credit.mp3');
@@ -9565,8 +9564,8 @@ var learnState = (function(){
 
             // set game parameters
             level = 1;
-            practiceMode = false;
-            turboMode = false;
+            // practiceMode = false;
+            // turboMode = false;
             gameMode = GAME_PACMAN;
 
             // reset relevant game state
@@ -9775,20 +9774,19 @@ var preNewGameState = (function() {
             newGameState.setStartLevel(1);
             exitTo(newGameState, 60);
         });
-    menu.addTextButton("PLAY TURBO",
-        function() { 
-            practiceMode = false;
-            turboMode = true;
-            newGameState.setStartLevel(1);
-            exitTo(newGameState, 60);
-        });
-    menu.addTextButton("PRACTICE",
-        function() { 
-            practiceMode = true;
-            turboMode = false;
-            exitTo(selectActState);
-        });
-    menu.addSpacer(0.5);
+    // menu.addTextButton("PLAY TURBO",
+    //     function() { 
+    //         practiceMode = false;
+    //         turboMode = true;
+    //         newGameState.setStartLevel(1);
+    //         exitTo(newGameState, 60);
+    //     });
+    // menu.addTextButton("PRACTICE",
+    //     function() { 
+    //         practiceMode = true;
+    //         turboMode = false;
+    //         exitTo(selectActState);
+    //     });
     menu.addTextButton("BACK",
         function() {
             exitTo(homeState);
@@ -11571,6 +11569,7 @@ var vcr = (function() {
         },
     };
 })();
+
 //@line 1 "src/main.js"
 //////////////////////////////////////////////////////////////////////////////////////
 // Entry Point

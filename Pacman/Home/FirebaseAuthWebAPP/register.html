@@ -5,9 +5,6 @@
 <title>Pacman Login</title>
 <meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
   <link rel="stylesheet" href="style.css">
-  <style>
-  
-  </style>
 <div class="topnav">
   <a href="../home.html">HOME</a>
   <a href="../howtoplay.html">HOW TO PLAY</a>
@@ -22,15 +19,12 @@
   <source src="../pacman.mp3">
 </audio>
 
-
-
-
     <!-- partial:index.partial.html -->
 <div id="app">
     <transition name="fade" mode="out-in" appear="appear" v-cloak="v-cloak">
       <form @submit="checkPassword" v-if="!logged_in">
-        <label for="1up">Player Name</label>
-        <input ref="name" id="1up" type="text"/>
+        <label for="email">Email</label>
+        <input ref="name" id="email" type="email"/>
         <label for="password">Password</label>
         <div class="scene-wrapper">
           <input @keyup.enter="runPacman" ref="password" id="password" type="password" v-model="password_entered" :class="{invalid : password_invalid}" :disabled="disableInput()"/>
@@ -48,7 +42,7 @@
             </div>
           </transition>
         </div>
-        <input @click="runPacman" ref="start" type="button" value="Press Start" :disabled="disableInput()"/>
+        <input @click="runPacman" ref="start" id="signUp" type="button" value="Press Start" :disabled="disableInput()"/>
       </form>
       <div class="logged-in" v-else="v-else">
         <p>You are now logged in.</p>
@@ -58,8 +52,9 @@
     </transition>
   </div>
   <!-- partial -->
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.15/vue.js'></script><script  src="./script.js"></script>
-  
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.15/vue.js'></script>
+    <script  src="./script.js"></script>
+    <script  type="module" src="./app1.js"></script>
   </body>
   </html>
 
