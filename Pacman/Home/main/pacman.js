@@ -1,4 +1,3 @@
-// import {logOut} from './../FirebaseAuthWebAPP/app1.js';
 (function(){
 
 //@line 1 "src/inherit.js"

@@ -30,6 +30,7 @@ if(document.getElementById("signIn") != null){
           const user = userCredential.user;
           // ...
           console.log("logged in");
+          window.location.replace("./../main/index.html");
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -50,6 +51,7 @@ if(document.getElementById("signUp") != null){
             const user = userCredential.user;
             // ...
             console.log("created");
+            window.location.replace("./index.html");
         })
         .catch((error) => {
             const errorCode = error.code;
@@ -61,12 +63,12 @@ if(document.getElementById("signUp") != null){
     });
 }
 
-export function logOut(){
-  return signOut(auth).then(() => {
-    // Sign-out successful.
-    console.log("logged out successful");
-  }).catch((error) => {
-    // An error happened.
-    console.log(error);
-  });
-}
+// function logOut(){
+//   // return signOut(auth).then(() => {
+//   //   // Sign-out successful.
+//   //   console.log("logged out successful");
+//   // }).catch((error) => {
+//   //   // An error happened.
+//   //   console.log(error);
+//   // });
+// }
