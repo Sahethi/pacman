@@ -1,3 +1,4 @@
+// import {logOut} from './../FirebaseAuthWebAPP/app1.js';
 (function(){
 
 //@line 1 "src/inherit.js"
@@ -9448,6 +9449,12 @@ var homeState = (function(){
         },
         function(ctx,x,y,frame) {
             atlas.drawGhostSprite(ctx,x,y,Math.floor(frame/8)%2,DIR_RIGHT,false,false,false,blinky.color);
+        });
+
+       menu.addTextButton("LOG OUT",
+        function() {
+            // logOut();
+            window.location.replace("../../Home/home.html");
         });
 
     return {
