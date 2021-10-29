@@ -62,13 +62,3 @@ if(document.getElementById("signUp") != null){
 
     });
 }
-
-// function logOut(){
-//   // return signOut(auth).then(() => {
-//   //   // Sign-out successful.
-//   //   console.log("logged out successful");
-//   // }).catch((error) => {
-//   //   // An error happened.
-//   //   console.log(error);
-//   // });
-// }

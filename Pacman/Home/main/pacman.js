@@ -1,6 +1,5 @@
 (function(){
 
-//@line 1 "src/inherit.js"
 //  Apparently, the mutable, non-standard __proto__ property creates a lot of complexity for JS optimizers,
 //   so it may be phased out in future JS versions.  It's not even supported in Internet Explorer.
 //
@@ -40,11 +39,10 @@ var newChildObject = function(parentObj, newObj) {
 };
 
 var DEBUG = false;
-//@line 1 "src/sound.js"
-/* Sound handlers added by Dr James Freeman who was sad such a great reverse was a silent movie  */
+
+//sounds
 
 var audio = new preloadAudio();
-
 function audioTrack(url, volume) {
     var audio = new Audio(url);
     if (volume) audio.volume = volume;
@@ -124,7 +122,9 @@ function preloadAudio() {
         }
     }
 }
-//@line 1 "src/random.js"
+
+
+//RANDOM COLOR 
 
 var getRandomColor = function() {
     return '#'+('00000'+(Math.random()*(1<<24)|0).toString(16)).slice(-6);
@@ -134,8 +134,7 @@ var getRandomInt = function(min,max) {
     return Math.floor(Math.random() * (max-min+1)) + min;
 };
 
-//@line 1 "src/game.js"
-//////////////////////////////////////////////////////////////////////////////////////
+
 // Game
 
 // game modes
@@ -187,8 +186,8 @@ var getPlayerDrawFunc = function(mode) {
 };
 
 
-// for clearing, backing up, and restoring cheat states (before and after cutscenes presently)
-var clearCheats, backupCheats, restoreCheats;
+// for clearing cheat states (before and after cutscenes presently)
+var clearCheats;
 (function(){
     clearCheats = function() {
         pacman.invincible = false;
@@ -199,26 +198,6 @@ var clearCheats, backupCheats, restoreCheats;
         }
         executive.setUpdatesPerSecond(60);
     };
-
-    var i, invincible, ai, isDrawPath, isDrawTarget;
-    isDrawPath = {};
-    isDrawTarget = {};
-    backupCheats = function() {
-        invincible = pacman.invincible;
-        ai = pacman.ai;
-        for (i=0; i<5; i++) {
-            isDrawPath[i] = actors[i].isDrawPath;
-            isDrawTarget[i] = actors[i].isDrawTarget;
-        }
-    };
-    restoreCheats = function() {
-        pacman.invincible = invincible;
-        pacman.ai = ai;
-        for (i=0; i<5; i++) {
-            actors[i].isDrawPath = isDrawPath[i];
-            actors[i].isDrawTarget = isDrawTarget[i];
-        }
-    };
 })();
 
 // current level, lives, and score
@@ -226,7 +205,6 @@ var level = 1;
 var extraLives = 0;
 
 // VCR functions
-
 var savedLevel = {};
 var savedExtraLives = {};
 var savedHighScore = {};
@@ -299,26 +277,7 @@ var setHighScore = function(highScore) {
     highScores[getScoreIndex()] = highScore;
     saveHighScores();
 };
-// High Score Persistence
 
-var loadHighScores = function() {
-    var hs;
-    var hslen;
-    var i;
-    if (localStorage && localStorage.highScores) {
-        hs = JSON.parse(localStorage.highScores);
-        hslen = hs.length;
-        for (i=0; i<hslen; i++) {
-            highScores[i] = Math.max(highScores[i],hs[i]);
-        }
-    }
-};
-var saveHighScores = function() {
-    if (localStorage) {
-        localStorage.highScores = JSON.stringify(highScores);
-    }
-};
-//@line 1 "src/direction.js"
 //////////////////////////////////////////////////////////////////////////////////////
 // Directions
 // (variables and utility functions for representing actor heading direction)
@@ -588,7 +547,6 @@ Map.prototype.parseWalls = function() {
         var turn,turnAround;
 
         /*
-
            We employ the 'right-hand rule' by keeping our right hand in contact
            with the wall to outline an individual wall piece.
 
@@ -599,8 +557,8 @@ Map.prototype.parseWalls = function() {
            When facing the direction of the walk at each tile, the outline will
            hug the left side of the tile unless there is a walkable tile to the
            left.  In that case, there will be a padding distance applied.
-           
         */
+
         var getStartPoint = function(tx,ty,dirEnum) {
             var dir = {};
             setDirFromEnum(dir, dirEnum);
@@ -9448,12 +9406,6 @@ var homeState = (function(){
             atlas.drawGhostSprite(ctx,x,y,Math.floor(frame/8)%2,DIR_RIGHT,false,false,false,blinky.color);
         });
 
-       menu.addTextButton("LOG OUT",
-        function() {
-            // logOut();
-            window.location.replace("../../Home/home.html");
-        });
-
     return {
         init: function() {
             menu.enable();
@@ -11579,7 +11531,7 @@ var vcr = (function() {
 // Entry Point
 
 window.addEventListener("load", function() {
-    loadHighScores();
+    // loadHighScores();
     initRenderer();
     atlas.create();
     initSwipe();
