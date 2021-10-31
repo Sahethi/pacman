@@ -1,23 +1,5 @@
 (function(){
 
-//  Apparently, the mutable, non-standard __proto__ property creates a lot of complexity for JS optimizers,
-//   so it may be phased out in future JS versions.  It's not even supported in Internet Explorer.
-//
-//  Object.create does everything that I would use a mutable __proto__ for, but this isn't implemented everywhere yet.
-// 
-//  So instead of the following:
-//
-//      var obj = {
-//          __proto__: parentObj,
-//          hello: function() { return "world"; },
-//      };
-//
-//  You can use this:
-//
-//      var obj = newChildObject(parentObj, {
-//          hello: function() { return "world"; },
-//      };
-
 var newChildObject = function(parentObj, newObj) {
 
     // equivalent to: var resultObj = { __proto__: parentObj };
@@ -41,7 +23,6 @@ var newChildObject = function(parentObj, newObj) {
 var DEBUG = false;
 
 //sounds
-
 var audio = new preloadAudio();
 function audioTrack(url, volume) {
     var audio = new Audio(url);
@@ -137,12 +118,8 @@ var getRandomInt = function(min,max) {
 
 // Game
 
-// game modes
+// game mode
 var GAME_PACMAN = 0;
-var GAME_MSPACMAN = 1;
-var GAME_COOKIE = 2;
-var GAME_OTTO = 3;
-
 
 // current game mode
 var gameMode = GAME_PACMAN;
@@ -185,20 +162,6 @@ var getPlayerDrawFunc = function(mode) {
     }
 };
 
-
-// for clearing cheat states (before and after cutscenes presently)
-var clearCheats;
-(function(){
-    clearCheats = function() {
-        pacman.invincible = false;
-        pacman.ai = false;
-        for (i=0; i<5; i++) {
-            actors[i].isDrawPath = false;
-            actors[i].isDrawTarget = false;
-        }
-        executive.setUpdatesPerSecond(60);
-    };
-})();
 
 // current level, lives, and score
 var level = 1;
@@ -278,15 +241,10 @@ var setHighScore = function(highScore) {
     saveHighScores();
 };
 
-//////////////////////////////////////////////////////////////////////////////////////
-// Directions
-// (variables and utility functions for representing actor heading direction)
 
-// direction enums (in counter-clockwise order)
-// NOTE: changing the order of these enums may effect the enums.
-//       I've tried abstracting away the uses by creating functions to rotate them.
-// NOTE: This order determines tie-breakers in the shortest distance turn logic.
-//       (i.e. higher priority turns have lower enum values)
+// Directions
+// variables and utility functions for representing actor heading direction
+
 var DIR_UP = 0;
 var DIR_LEFT = 1;
 var DIR_DOWN = 2;
@@ -366,9 +324,7 @@ var getOpenTiles = function(tile,dirEnum) {
             if (openTiles[i])
                 numOpenTiles++;
 
-        // By design, no mazes should have dead ends,
-        // but allow player to turn around if and only if it's necessary.
-        // Only close the passage behind the player if there are other openings.
+        // By design, no mazes should have dead ends but allow player to turn around if and only if it's necessary. Only close the passage behind the player if there are other openings.
         var oppDirEnum = rotateAboutFace(dirEnum); // current opposite direction enum
         if (numOpenTiles > 1)
             openTiles[oppDirEnum] = false;
@@ -382,11 +338,8 @@ var isNextTileFloor = function(tile,dir) {
     return map.isFloorTile(tile.x+dir.x,tile.y+dir.y);
 };
 
-//@line 1 "src/Map.js"
-//////////////////////////////////////////////////////////////////////////////////////
-// Map
-// (an ascii map of tiles representing a level maze)
 
+// Map
 // size of a square tile in pixels
 var tileSize = 8;
 
@@ -766,1609 +719,6 @@ Map.prototype.onDotEat = function(x,y) {
     this.timeEaten[i] = vcr.getTime();
     renderer.erasePellet(x,y);
 };
-//@line 1 "src/colors.js"
-// source: http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
-
-/**
- * Converts an RGB color value to HSL. Conversion formula
- * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
- * Assumes r, g, and b are contained in the set [0, 255] and
- * returns h, s, and l in the set [0, 1].
- *
- * @param   Number  r       The red color value
- * @param   Number  g       The green color value
- * @param   Number  b       The blue color value
- * @return  Array           The HSL representation
- */
-function rgbToHsl(r, g, b){
-    r /= 255, g /= 255, b /= 255;
-    var max = Math.max(r, g, b), min = Math.min(r, g, b);
-    var h, s, l = (max + min) / 2;
-
-    if(max == min){
-        h = s = 0; // achromatic
-    }else{
-        var d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch(max){
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-        }
-        h /= 6;
-    }
-
-    return [h, s, l];
-}
-
-/**
- * Converts an HSL color value to RGB. Conversion formula
- * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
- * Assumes h, s, and l are contained in the set [0, 1] and
- * returns r, g, and b in the set [0, 255].
- *
- * @param   Number  h       The hue
- * @param   Number  s       The saturation
- * @param   Number  l       The lightness
- * @return  Array           The RGB representation
- */
-function hslToRgb(h, s, l){
-    var r, g, b;
-
-    if(s == 0){
-        r = g = b = l; // achromatic
-    }else{
-        function hue2rgb(p, q, t){
-            if(t < 0) t += 1;
-            if(t > 1) t -= 1;
-            if(t < 1/6) return p + (q - p) * 6 * t;
-            if(t < 1/2) return q;
-            if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-            return p;
-        }
-
-        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        var p = 2 * l - q;
-        r = hue2rgb(p, q, h + 1/3);
-        g = hue2rgb(p, q, h);
-        b = hue2rgb(p, q, h - 1/3);
-    }
-
-    r *= 255;
-    g *= 255;
-    b *= 255;
-
-    return [r,g,b];
-}
-
-/**
- * Converts an RGB color value to HSV. Conversion formula
- * adapted from http://en.wikipedia.org/wiki/HSV_color_space.
- * Assumes r, g, and b are contained in the set [0, 255] and
- * returns h, s, and v in the set [0, 1].
- *
- * @param   Number  r       The red color value
- * @param   Number  g       The green color value
- * @param   Number  b       The blue color value
- * @return  Array           The HSV representation
- */
-function rgbToHsv(r, g, b){
-    r = r/255, g = g/255, b = b/255;
-    var max = Math.max(r, g, b), min = Math.min(r, g, b);
-    var h, s, v = max;
-
-    var d = max - min;
-    s = max == 0 ? 0 : d / max;
-
-    if(max == min){
-        h = 0; // achromatic
-    }else{
-        switch(max){
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-        }
-        h /= 6;
-    }
-
-    return [h, s, v];
-}
-
-/**
- * Converts an HSV color value to RGB. Conversion formula
- * adapted from http://en.wikipedia.org/wiki/HSV_color_space.
- * Assumes h, s, and v are contained in the set [0, 1] and
- * returns r, g, and b in the set [0, 255].
- *
- * @param   Number  h       The hue
- * @param   Number  s       The saturation
- * @param   Number  v       The value
- * @return  Array           The RGB representation
- */
-function hsvToRgb(h, s, v){
-    var r, g, b;
-
-    var i = Math.floor(h * 6);
-    var f = h * 6 - i;
-    var p = v * (1 - s);
-    var q = v * (1 - f * s);
-    var t = v * (1 - (1 - f) * s);
-
-    switch(i % 6){
-        case 0: r = v, g = t, b = p; break;
-        case 1: r = q, g = v, b = p; break;
-        case 2: r = p, g = v, b = t; break;
-        case 3: r = p, g = q, b = v; break;
-        case 4: r = t, g = p, b = v; break;
-        case 5: r = v, g = p, b = q; break;
-    }
-
-    r *= 255;
-    g *= 255;
-    b *= 255;
-
-    return [r,g,b];
-}
-
-function rgbString(rgb) {
-    var r = Math.floor(rgb[0]);
-    var g = Math.floor(rgb[1]);
-    var b = Math.floor(rgb[2]);
-    return 'rgb('+r+','+g+','+b+')';
-}
-//@line 1 "src/mapgen.js"
-var mapgen = (function(){
-
-    var shuffle = function(list) {
-        var len = list.length;
-        var i,j;
-        var temp;
-        for (i=0; i<len; i++) {
-            j = getRandomInt(0,len-1);
-            temp = list[i];
-            list[i] = list[j];
-            list[j] = temp;
-        }
-    };
-
-    var randomElement = function(list) {
-        var len = list.length;
-        if (len > 0) {
-            return list[getRandomInt(0,len-1)];
-        }
-    };
-
-    var UP = 0;
-    var RIGHT = 1;
-    var DOWN = 2;
-    var LEFT = 3;
-
-    var cells = [];
-    var tallRows = [];
-    var narrowCols = [];
-
-    var rows = 9;
-    var cols = 5;
-
-    var reset = function() {
-        var i;
-        var c;
-
-        // initialize cells
-        for (i=0; i<rows*cols; i++) {
-            cells[i] = {
-                x: i%cols,
-                y: Math.floor(i/cols),
-                filled: false,
-                connect: [false, false, false, false],
-                next: [],
-                no: undefined,
-                group: undefined,
-            };
-        }
-
-        // allow each cell to refer to surround cells by direction
-        for (i=0; i<rows*cols; i++) {
-            var c = cells[i];
-            if (c.x > 0)
-                c.next[LEFT] = cells[i-1];
-            if (c.x < cols - 1)
-                c.next[RIGHT] = cells[i+1];
-            if (c.y > 0)
-                c.next[UP] = cells[i-cols];
-            if (c.y < rows - 1)
-                c.next[DOWN] = cells[i+cols];
-        }
-
-        // define the ghost home square
-
-        i = 3*cols;
-        c = cells[i];
-        c.filled=true;
-        c.connect[LEFT] = c.connect[RIGHT] = c.connect[DOWN] = true;
-
-        i++;
-        c = cells[i];
-        c.filled=true;
-        c.connect[LEFT] = c.connect[DOWN] = true;
-
-        i+=cols-1;
-        c = cells[i];
-        c.filled=true;
-        c.connect[LEFT] = c.connect[UP] = c.connect[RIGHT] = true;
-
-        i++;
-        c = cells[i];
-        c.filled=true;
-        c.connect[UP] = c.connect[LEFT] = true;
-    };
-
-    var genRandom = function() {
-
-        var getLeftMostEmptyCells = function() {
-            var x;
-            var leftCells = [];
-            for (x=0; x<cols; x++) {
-                for (y=0; y<rows; y++) {
-                    var c = cells[x+y*cols];
-                    if (!c.filled) {
-                        leftCells.push(c);
-                    }
-                }
-
-                if (leftCells.length > 0) {
-                    break;
-                }
-            }
-            return leftCells;
-        };
-        var isOpenCell = function(cell,i,prevDir,size) {
-
-            // prevent wall from going through starting position
-            if (cell.y == 6 && cell.x == 0 && i == DOWN ||
-                cell.y == 7 && cell.x == 0 && i == UP) {
-                return false;
-            }
-
-            // prevent long straight pieces of length 3
-            if (size == 2 && (i==prevDir || rotateAboutFace(i)==prevDir)) {
-                return false;
-            }
-
-            // examine an adjacent empty cell
-            if (cell.next[i] && !cell.next[i].filled) {
-                
-                // only open if the cell to the left of it is filled
-                if (cell.next[i].next[LEFT] && !cell.next[i].next[LEFT].filled) {
-                }
-                else {
-                    return true;
-                }
-            }
-
-            return false;
-        };
-        var getOpenCells = function(cell,prevDir,size) {
-            var openCells = [];
-            var numOpenCells = 0;
-            for (i=0; i<4; i++) {
-                if (isOpenCell(cell,i,prevDir,size)) {
-                    openCells.push(i);
-                    numOpenCells++;
-                }
-            }
-            return { openCells: openCells, numOpenCells: numOpenCells };
-        };
-        var connectCell = function(cell,dir) {
-            cell.connect[dir] = true;
-            cell.next[dir].connect[rotateAboutFace(dir)] = true;
-            if (cell.x == 0 && dir == RIGHT) {
-                cell.connect[LEFT] = true;
-            }
-        };
-
-        var gen = function() {
-        
-            var cell;      // cell at the center of growth (open cells are chosen around this cell)
-            var newCell;   // most recent cell filled
-            var firstCell; // the starting cell of the current group
-
-            var openCells;    // list of open cells around the center cell
-            var numOpenCells; // size of openCells
-
-            var dir; // the most recent direction of growth relative to the center cell
-            var i;   // loop control variable used for iterating directions
-
-            var numFilled = 0;  // current count of total cells filled
-            var numGroups;      // current count of cell groups created
-            var size;           // current number of cells in the current group
-            var probStopGrowingAtSize = [ // probability of stopping growth at sizes...
-                    0,     // size 0
-                    0,     // size 1
-                    0.10,  // size 2
-                    0.5,   // size 3
-                    0.75,  // size 4
-                    1];    // size 5
-
-            // A single cell group of size 1 is allowed at each row at y=0 and y=rows-1,
-            // so keep count of those created.
-            var singleCount = {};
-            singleCount[0] = singleCount[rows-1] = 0;
-            var probTopAndBotSingleCellJoin = 0.35;
-
-            // A count and limit of the number long pieces (i.e. an "L" of size 4 or "T" of size 5)
-            var longPieces = 0;
-            var maxLongPieces = 1;
-            var probExtendAtSize2 = 1;
-            var probExtendAtSize3or4 = 0.5;
-
-            var fillCell = function(cell) {
-                cell.filled = true;
-                cell.no = numFilled++;
-                cell.group = numGroups;
-            };
-
-            for (numGroups=0; ; numGroups++) {
-
-                // find all the leftmost empty cells
-                openCells = getLeftMostEmptyCells();
-
-                // stop add pieces if there are no more empty cells.
-                numOpenCells = openCells.length;
-                if (numOpenCells == 0) {
-                    break;
-                }
-
-                // choose the center cell to be a random open cell, and fill it.
-                firstCell = cell = openCells[getRandomInt(0,numOpenCells-1)];
-                fillCell(cell);
-
-                // randomly allow one single-cell piece on the top or bottom of the map.
-                if (cell.x < cols-1 && (cell.y in singleCount) && Math.random() <= probTopAndBotSingleCellJoin) {
-                    if (singleCount[cell.y] == 0) {
-                        cell.connect[cell.y == 0 ? UP : DOWN] = true;
-                        singleCount[cell.y]++;
-                        continue;
-                    }
-                }
-
-                // number of cells in this contiguous group
-                size = 1;
-
-                if (cell.x == cols-1) {
-                    // if the first cell is at the right edge, then don't grow it.
-                    cell.connect[RIGHT] = true;
-                    cell.isRaiseHeightCandidate = true;
-                }
-                else {
-                    // only allow the piece to grow to 5 cells at most.
-                    while (size < 5) {
-
-                        var stop = false;
-
-                        if (size == 2) {
-                            // With a horizontal 2-cell group, try to turn it into a 4-cell "L" group.
-                            // This is done here because this case cannot be reached when a piece has already grown to size 3.
-                            var c = firstCell;
-                            if (c.x > 0 && c.connect[RIGHT] && c.next[RIGHT] && c.next[RIGHT].next[RIGHT]) {
-                                if (longPieces < maxLongPieces && Math.random() <= probExtendAtSize2) {
-
-                                    c = c.next[RIGHT].next[RIGHT];
-                                    var dirs = {};
-                                    if (isOpenCell(c,UP)) {
-                                        dirs[UP] = true;
-                                    }
-                                    if (isOpenCell(c,DOWN)) {
-                                        dirs[DOWN] = true;
-                                    }
-
-                                    if (dirs[UP] && dirs[DOWN]) {
-                                        i = [UP,DOWN][getRandomInt(0,1)];
-                                    }
-                                    else if (dirs[UP]) {
-                                        i = UP;
-                                    }
-                                    else if (dirs[DOWN]) {
-                                        i = DOWN;
-                                    }
-                                    else {
-                                        i = undefined;
-                                    }
-
-                                    if (i != undefined) {
-                                        connectCell(c,LEFT);
-                                        fillCell(c);
-                                        connectCell(c,i);
-                                        fillCell(c.next[i]);
-                                        longPieces++;
-                                        size+=2;
-                                        stop = true;
-                                    }
-                                }
-                            }
-                        }
-
-                        if (!stop) {
-                            // find available open adjacent cells.
-                            var result = getOpenCells(cell,dir,size);
-                            openCells = result['openCells'];
-                            numOpenCells = result['numOpenCells'];
-
-                            // if no open cells found from center point, then use the last cell as the new center
-                            // but only do this if we are of length 2 to prevent numerous short pieces.
-                            // then recalculate the open adjacent cells.
-                            if (numOpenCells == 0 && size == 2) {
-                                cell = newCell;
-                                result = getOpenCells(cell,dir,size);
-                                openCells = result['openCells'];
-                                numOpenCells = result['numOpenCells'];
-                            }
-
-                            // no more adjacent cells, so stop growing this piece.
-                            if (numOpenCells == 0) {
-                                stop = true;
-                            }
-                            else {
-                                // choose a random valid direction to grow.
-                                dir = openCells[getRandomInt(0,numOpenCells-1)];
-                                newCell = cell.next[dir];
-
-                                // connect the cell to the new cell.
-                                connectCell(cell,dir);
-
-                                // fill the cell
-                                fillCell(newCell);
-
-                                // increase the size count of this piece.
-                                size++;
-
-                                // don't let center pieces grow past 3 cells
-                                if (firstCell.x == 0 && size == 3) {
-                                    stop = true;
-                                }
-
-                                // Use a probability to determine when to stop growing the piece.
-                                if (Math.random() <= probStopGrowingAtSize[size]) {
-                                    stop = true;
-                                }
-                            }
-                        }
-
-                        // Close the piece.
-                        if (stop) {
-
-                            if (size == 1) {
-                                // This is provably impossible because this loop is never entered with size==1.
-                            }
-                            else if (size == 2) {
-
-                                // With a vertical 2-cell group, attach to the right wall if adjacent.
-                                var c = firstCell;
-                                if (c.x == cols-1) {
-
-                                    // select the top cell
-                                    if (c.connect[UP]) {
-                                        c = c.next[UP];
-                                    }
-                                    c.connect[RIGHT] = c.next[DOWN].connect[RIGHT] = true;
-                                }
-                                
-                            }
-                            else if (size == 3 || size == 4) {
-
-                                // Try to extend group to have a long leg
-                                if (longPieces < maxLongPieces && firstCell.x > 0 && Math.random() <= probExtendAtSize3or4) {
-                                    var dirs = [];
-                                    var dirsLength = 0;
-                                    for (i=0; i<4; i++) {
-                                        if (cell.connect[i] && isOpenCell(cell.next[i],i)) {
-                                            dirs.push(i);
-                                            dirsLength++;
-                                        }
-                                    }
-                                    if (dirsLength > 0) {
-                                        i = dirs[getRandomInt(0,dirsLength-1)];
-                                        c = cell.next[i];
-                                        connectCell(c,i);
-                                        fillCell(c.next[i]);
-                                        longPieces++;
-                                    }
-                                }
-                            }
-
-                            break;
-                        }
-                    }
-                }
-            }
-            setResizeCandidates();
-        };
-
-
-        var setResizeCandidates = function() {
-            var i;
-            var c,q,c2,q2;
-            var x,y;
-            for (i=0; i<rows*cols; i++) {
-                c = cells[i];
-                x = i % cols;
-                y = Math.floor(i/cols);
-
-                // determine if it has flexible height
-
-                //
-                // |_|
-                //
-                // or
-                //  _
-                // | |
-                //
-                q = c.connect;
-                if ((c.x == 0 || !q[LEFT]) &&
-                    (c.x == cols-1 || !q[RIGHT]) &&
-                    q[UP] != q[DOWN]) {
-                    c.isRaiseHeightCandidate = true;
-                }
-
-                //  _ _
-                // |_ _|
-                //
-                c2 = c.next[RIGHT];
-                if (c2 != undefined) {
-                    q2 = c2.connect;
-                    if (((c.x == 0 || !q[LEFT]) && !q[UP] && !q[DOWN]) &&
-                        ((c2.x == cols-1 || !q2[RIGHT]) && !q2[UP] && !q2[DOWN])
-                        ) {
-                        c.isRaiseHeightCandidate = c2.isRaiseHeightCandidate = true;
-                    }
-                }
-
-                // determine if it has flexible width
-
-                // if cell is on the right edge with an opening to the right
-                if (c.x == cols-1 && q[RIGHT]) {
-                    c.isShrinkWidthCandidate = true;
-                }
-
-                //  _
-                // |_
-                // 
-                // or
-                //  _
-                //  _|
-                //
-                if ((c.y == 0 || !q[UP]) &&
-                    (c.y == rows-1 || !q[DOWN]) &&
-                    q[LEFT] != q[RIGHT]) {
-                    c.isShrinkWidthCandidate = true;
-                }
-
-            }
-        };
-
-        // Identify if a cell is the center of a cross.
-        var cellIsCrossCenter = function(c) {
-            return c.connect[UP] && c.connect[RIGHT] && c.connect[DOWN] && c.connect[LEFT];
-        };
-
-        var chooseNarrowCols = function() {
-
-            var canShrinkWidth = function(x,y) {
-
-                // Can cause no more tight turns.
-                if (y==rows-1) {
-                    return true;
-                }
-
-                // get the right-hand-side bound
-                var x0;
-                var c,c2;
-                for (x0=x; x0<cols; x0++) {
-                    c = cells[x0+y*cols];
-                    c2 = c.next[DOWN]
-                    if ((!c.connect[RIGHT] || cellIsCrossCenter(c)) &&
-                        (!c2.connect[RIGHT] || cellIsCrossCenter(c2))) {
-                        break;
-                    }
-                }
-
-                // build candidate list
-                var candidates = [];
-                var numCandidates = 0;
-                for (; c2; c2=c2.next[LEFT]) {
-                    if (c2.isShrinkWidthCandidate) {
-                        candidates.push(c2);
-                        numCandidates++;
-                    }
-
-                    // cannot proceed further without causing irreconcilable tight turns
-                    if ((!c2.connect[LEFT] || cellIsCrossCenter(c2)) &&
-                        (!c2.next[UP].connect[LEFT] || cellIsCrossCenter(c2.next[UP]))) {
-                        break;
-                    }
-                }
-                shuffle(candidates);
-
-                var i;
-                for (i=0; i<numCandidates; i++) {
-                    c2 = candidates[i];
-                    if (canShrinkWidth(c2.x,c2.y)) {
-                        c2.shrinkWidth = true;
-                        narrowCols[c2.y] = c2.x;
-                        return true;
-                    }
-                }
-
-                return false;
-            };
-
-            var x;
-            var c;
-            for (x=cols-1; x>=0; x--) {
-                c = cells[x];
-                if (c.isShrinkWidthCandidate && canShrinkWidth(x,0)) {
-                    c.shrinkWidth = true;
-                    narrowCols[c.y] = c.x;
-                    return true;
-                }
-            }
-
-            return false;
-        };
-
-        var chooseTallRows = function() {
-
-            var canRaiseHeight = function(x,y) {
-
-                // Can cause no more tight turns.
-                if (x==cols-1) {
-                    return true;
-                }
-
-                // find the first cell below that will create too tight a turn on the right
-                var y0;
-                var c;
-                var c2;
-                for (y0=y; y0>=0; y0--) {
-                    c = cells[x+y0*cols];
-                    c2 = c.next[RIGHT]
-                    if ((!c.connect[UP] || cellIsCrossCenter(c)) && 
-                        (!c2.connect[UP] || cellIsCrossCenter(c2))) {
-                        break;
-                    }
-                }
-
-                // Proceed from the right cell upwards, looking for a cell that can be raised.
-                var candidates = [];
-                var numCandidates = 0;
-                for (; c2; c2=c2.next[DOWN]) {
-                    if (c2.isRaiseHeightCandidate) {
-                        candidates.push(c2);
-                        numCandidates++;
-                    }
-
-                    // cannot proceed further without causing irreconcilable tight turns
-                    if ((!c2.connect[DOWN] || cellIsCrossCenter(c2)) &&
-                        (!c2.next[LEFT].connect[DOWN] || cellIsCrossCenter(c2.next[LEFT]))) {
-                        break;
-                    }
-                }
-                shuffle(candidates);
-
-                var i;
-                for (i=0; i<numCandidates; i++) {
-                    c2 = candidates[i];
-                    if (canRaiseHeight(c2.x,c2.y)) {
-                        c2.raiseHeight = true;
-                        tallRows[c2.x] = c2.y;
-                        return true;
-                    }
-                }
-
-                return false;
-            };
-
-            // From the top left, examine cells below until hitting top of ghost house.
-            // A raisable cell must be found before the ghost house.
-            var y;
-            var c;
-            for (y=0; y<3; y++) {
-                c = cells[y*cols];
-                if (c.isRaiseHeightCandidate && canRaiseHeight(0,y)) {
-                    c.raiseHeight = true;
-                    tallRows[c.x] = c.y;
-                    return true;
-                }
-            }
-
-            return false;
-        };
-
-        // This is a function to detect impurities in the map that have no heuristic implemented to avoid it yet in gen().
-        var isDesirable = function() {
-
-            // ensure a solid top right corner
-            var c = cells[4];
-            if (c.connect[UP] || c.connect[RIGHT]) {
-                return false;
-            }
-
-            // ensure a solid bottom right corner
-            c = cells[rows*cols-1];
-            if (c.connect[DOWN] || c.connect[RIGHT]) {
-                return false;
-            }
-
-            // ensure there are no two stacked/side-by-side 2-cell pieces.
-            var isHori = function(x,y) {
-                var q1 = cells[x+y*cols].connect;
-                var q2 = cells[x+1+y*cols].connect;
-                return !q1[UP] && !q1[DOWN] && (x==0 || !q1[LEFT]) && q1[RIGHT] && 
-                       !q2[UP] && !q2[DOWN] && q2[LEFT] && !q2[RIGHT];
-            };
-            var isVert = function(x,y) {
-                var q1 = cells[x+y*cols].connect;
-                var q2 = cells[x+(y+1)*cols].connect;
-                if (x==cols-1) {
-                    // special case (we can consider two single cells as vertical at the right edge)
-                    return !q1[LEFT] && !q1[UP] && !q1[DOWN] &&
-                           !q2[LEFT] && !q2[UP] && !q2[DOWN];
-                }
-                return !q1[LEFT] && !q1[RIGHT] && !q1[UP] && q1[DOWN] && 
-                       !q2[LEFT] && !q2[RIGHT] && q2[UP] && !q2[DOWN];
-            };
-            var x,y;
-            var g;
-            for (y=0; y<rows-1; y++) {
-                for (x=0; x<cols-1; x++) {
-                    if (isHori(x,y) && isHori(x,y+1) ||
-                        isVert(x,y) && isVert(x+1,y)) {
-
-                        // don't allow them in the middle because they'll be two large when reflected.
-                        if (x==0) {
-                            return false;
-                        }
-
-                        // Join the four cells to create a square.
-                        cells[x+y*cols].connect[DOWN] = true;
-                        cells[x+y*cols].connect[RIGHT] = true;
-                        g = cells[x+y*cols].group;
-
-                        cells[x+1+y*cols].connect[DOWN] = true;
-                        cells[x+1+y*cols].connect[LEFT] = true;
-                        cells[x+1+y*cols].group = g;
-
-                        cells[x+(y+1)*cols].connect[UP] = true;
-                        cells[x+(y+1)*cols].connect[RIGHT] = true;
-                        cells[x+(y+1)*cols].group = g;
-
-                        cells[x+1+(y+1)*cols].connect[UP] = true;
-                        cells[x+1+(y+1)*cols].connect[LEFT] = true;
-                        cells[x+1+(y+1)*cols].group = g;
-                    }
-                }
-            }
-
-            if (!chooseTallRows()) {
-                return false;
-            }
-
-            if (!chooseNarrowCols()) {
-                return false;
-            }
-
-            return true;
-        };
-
-        // set the final position and size of each cell when upscaling the simple model to actual size
-        var setUpScaleCoords = function() {
-            var i,c;
-            for (i=0; i<rows*cols; i++) {
-                c = cells[i];
-                c.final_x = c.x*3;
-                if (narrowCols[c.y] < c.x) {
-                    c.final_x--;
-                }
-                c.final_y = c.y*3;
-                if (tallRows[c.x] < c.y) {
-                    c.final_y++;
-                }
-                c.final_w = c.shrinkWidth ? 2 : 3;
-                c.final_h = c.raiseHeight ? 4 : 3;
-            }
-        };
-
-        var reassignGroup = function(oldg,newg) {
-            var i;
-            var c;
-            for (i=0; i<rows*cols; i++) {
-                c = cells[i];
-                if (c.group == oldg) {
-                    c.group = newg;
-                }
-            }
-        };
-
-        var createTunnels = function() {
-
-            // declare candidates
-            var singleDeadEndCells = [];
-            var topSingleDeadEndCells = [];
-            var botSingleDeadEndCells = [];
-
-            var voidTunnelCells = [];
-            var topVoidTunnelCells = [];
-            var botVoidTunnelCells = [];
-
-            var edgeTunnelCells = [];
-            var topEdgeTunnelCells = [];
-            var botEdgeTunnelCells = [];
-
-            var doubleDeadEndCells = [];
-
-            var numTunnelsCreated = 0;
-
-            // prepare candidates
-            var y;
-            var c;
-            var upDead;
-            var downDead;
-            for (y=0; y<rows; y++) {
-                c = cells[cols-1+y*cols];
-                if (c.connect[UP]) {
-                    continue;
-                }
-                if (c.y > 1 && c.y < rows-2) {
-                    c.isEdgeTunnelCandidate = true;
-                    edgeTunnelCells.push(c);
-                    if (c.y <= 2) {
-                        topEdgeTunnelCells.push(c);
-                    }
-                    else if (c.y >= 5) {
-                        botEdgeTunnelCells.push(c);
-                    }
-                }
-                upDead = (!c.next[UP] || c.next[UP].connect[RIGHT]);
-                downDead = (!c.next[DOWN] || c.next[DOWN].connect[RIGHT]);
-                if (c.connect[RIGHT]) {
-                    if (upDead) {
-                        c.isVoidTunnelCandidate = true;
-                        voidTunnelCells.push(c);
-                        if (c.y <= 2) {
-                            topVoidTunnelCells.push(c);
-                        }
-                        else if (c.y >= 6) {
-                            botVoidTunnelCells.push(c);
-                        }
-                    }
-                }
-                else {
-                    if (c.connect[DOWN]) {
-                        continue;
-                    }
-                    if (upDead != downDead) {
-                        if (!c.raiseHeight && y < rows-1 && !c.next[LEFT].connect[LEFT]) {
-                            singleDeadEndCells.push(c);
-                            c.isSingleDeadEndCandidate = true;
-                            c.singleDeadEndDir = upDead ? UP : DOWN;
-                            var offset = upDead ? 1 : 0;
-                            if (c.y <= 1+offset) {
-                                topSingleDeadEndCells.push(c);
-                            }
-                            else if (c.y >= 5+offset) {
-                                botSingleDeadEndCells.push(c);
-                            }
-                        }
-                    }
-                    else if (upDead && downDead) {
-                        if (y > 0 && y < rows-1) {
-                            if (c.next[LEFT].connect[UP] && c.next[LEFT].connect[DOWN]) {
-                                c.isDoubleDeadEndCandidate = true;
-                                if (c.y >= 2 && c.y <= 5) {
-                                    doubleDeadEndCells.push(c);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // choose tunnels from candidates
-            var numTunnelsDesired = Math.random() <= 0.45 ? 2 : 1;
-            var c;
-            var selectSingleDeadEnd = function(c) {
-                c.connect[RIGHT] = true;
-                if (c.singleDeadEndDir == UP) {
-                    c.topTunnel = true;
-                }
-                else {
-                    c.next[DOWN].topTunnel = true;
-                }
-            };
-            if (numTunnelsDesired == 1) {
-                if (c = randomElement(voidTunnelCells)) {
-                    c.topTunnel = true;
-                }
-                else if (c = randomElement(singleDeadEndCells)) {
-                    selectSingleDeadEnd(c);
-                }
-                else if (c = randomElement(edgeTunnelCells)) {
-                    c.topTunnel = true;
-                }
-                else {
-                    return false;
-                }
-            }
-            else if (numTunnelsDesired == 2) {
-                if (c = randomElement(doubleDeadEndCells)) {
-                    c.connect[RIGHT] = true;
-                    c.topTunnel = true;
-                    c.next[DOWN].topTunnel = true;
-                }
-                else {
-                    numTunnelsCreated = 1;
-                    if (c = randomElement(topVoidTunnelCells)) {
-                        c.topTunnel = true;
-                    }
-                    else if (c = randomElement(topSingleDeadEndCells)) {
-                        selectSingleDeadEnd(c);
-                    }
-                    else if (c = randomElement(topEdgeTunnelCells)) {
-                        c.topTunnel = true;
-                    }
-                    else {
-                        // could not find a top tunnel opening
-                        numTunnelsCreated = 0;
-                    }
-
-                    if (c = randomElement(botVoidTunnelCells)) {
-                        c.topTunnel = true;
-                    }
-                    else if (c = randomElement(botSingleDeadEndCells)) {
-                        selectSingleDeadEnd(c);
-                    }
-                    else if (c = randomElement(botEdgeTunnelCells)) {
-                        c.topTunnel = true;
-                    }
-                    else {
-                        // could not find a bottom tunnel opening
-                        if (numTunnelsCreated == 0) {
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            // don't allow a horizontal path to cut straight through a map (through tunnels)
-            var exit,topy;
-            for (y=0; y<rows; y++) {
-                c = cells[cols-1+y*cols];
-                if (c.topTunnel) {
-                    exit = true;
-                    topy = c.final_y;
-                    while (c.next[LEFT]) {
-                        c = c.next[LEFT];
-                        if (!c.connect[UP] && c.final_y == topy) {
-                            continue;
-                        }
-                        else {
-                            exit = false;
-                            break;
-                        }
-                    }
-                    if (exit) {
-                        return false;
-                    }
-                }
-            }
-
-            // clear unused void tunnels (dead ends)
-            var len = voidTunnelCells.length;
-            var i;
-
-            var replaceGroup = function(oldg,newg) {
-                var i,c;
-                for (i=0; i<rows*cols; i++) {
-                    c = cells[i];
-                    if (c.group == oldg) {
-                        c.group = newg;
-                    }
-                }
-            };
-            for (i=0; i<len; i++) {
-                c = voidTunnelCells[i];
-                if (!c.topTunnel) {
-                    replaceGroup(c.group, c.next[UP].group);
-                    c.connect[UP] = true;
-                    c.next[UP].connect[DOWN] = true;
-                }
-            }
-
-            return true;
-        };
-
-        var joinWalls = function() {
-
-            // randomly join wall pieces to the boundary to increase difficulty
-
-            var x,y;
-            var c;
-
-            // join cells to the top boundary
-            for (x=0; x<cols; x++) {
-                c = cells[x];
-                if (!c.connect[LEFT] && !c.connect[RIGHT] && !c.connect[UP] &&
-                    (!c.connect[DOWN] || !c.next[DOWN].connect[DOWN])) {
-
-                    // ensure it will not create a dead-end
-                    if ((!c.next[LEFT] || !c.next[LEFT].connect[UP]) &&
-                        (c.next[RIGHT] && !c.next[RIGHT].connect[UP])) {
-
-                        // prevent connecting very large piece
-                        if (!(c.next[DOWN] && c.next[DOWN].connect[RIGHT] && c.next[DOWN].next[RIGHT].connect[RIGHT])) {
-                            c.isJoinCandidate = true;
-                            if (Math.random() <= 0.25) {
-                                c.connect[UP] = true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // join cells to the bottom boundary
-            for (x=0; x<cols; x++) {
-                c = cells[x+(rows-1)*cols];
-                if (!c.connect[LEFT] && !c.connect[RIGHT] && !c.connect[DOWN] &&
-                    (!c.connect[UP] || !c.next[UP].connect[UP])) {
-
-                    // ensure it will not creat a dead-end
-                    if ((!c.next[LEFT] || !c.next[LEFT].connect[DOWN]) &&
-                        (c.next[RIGHT] && !c.next[RIGHT].connect[DOWN])) {
-
-                        // prevent connecting very large piece
-                        if (!(c.next[UP] && c.next[UP].connect[RIGHT] && c.next[UP].next[RIGHT].connect[RIGHT])) {
-                            c.isJoinCandidate = true;
-                            if (Math.random() <= 0.25) {
-                                c.connect[DOWN] = true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // join cells to the right boundary
-            var c2;
-            for (y=1; y<rows-1; y++) {
-                c = cells[cols-1+y*cols];
-                if (c.raiseHeight) {
-                    continue;
-                }
-                if (!c.connect[RIGHT] && !c.connect[UP] && !c.connect[DOWN] &&
-                    !c.next[UP].connect[RIGHT] && !c.next[DOWN].connect[RIGHT]) {
-                    if (c.connect[LEFT]) {
-                        c2 = c.next[LEFT];
-                        if (!c2.connect[UP] && !c2.connect[DOWN] && !c2.connect[LEFT]) {
-                            c.isJoinCandidate = true;
-                            if (Math.random() <= 0.5) {
-                                c.connect[RIGHT] = true;
-                            }
-                        }
-                    }
-                }
-            }
-        };
-
-        // try to generate a valid map, and keep count of tries.
-        var genCount = 0;
-        while (true) {
-            reset();
-            gen();
-            genCount++;
-            if (!isDesirable()) {
-                continue;
-            }
-
-            setUpScaleCoords();
-            joinWalls();
-            if (!createTunnels()) {
-                continue;
-            }
-
-            break;
-        }
-
-    };
-
-    // Transform the simple cells to a tile array used for creating the map.
-    var getTiles = function() {
-
-        var tiles = []; // each is a character indicating a wall(|), path(.), or blank(_).
-        var tileCells = []; // maps each tile to a specific cell of our simple map
-        var subrows = rows*3+1+3;
-        var subcols = cols*3-1+2;
-
-        var midcols = subcols-2;
-        var fullcols = (subcols-2)*2;
-
-        // getter and setter for tiles (ensures vertical symmetry axis)
-        var setTile = function(x,y,v) {
-            if (x<0 || x>subcols-1 || y<0 || y>subrows-1) {
-                return;
-            }
-            x -= 2;
-            tiles[midcols+x+y*fullcols] = v;
-            tiles[midcols-1-x+y*fullcols] = v;
-        };
-        var getTile = function(x,y) {
-            if (x<0 || x>subcols-1 || y<0 || y>subrows-1) {
-                return undefined;
-            }
-            x -= 2;
-            return tiles[midcols+x+y*fullcols];
-        };
-
-        // getter and setter for tile cells
-        var setTileCell = function(x,y,cell) {
-            if (x<0 || x>subcols-1 || y<0 || y>subrows-1) {
-                return;
-            }
-            x -= 2;
-            tileCells[x+y*subcols] = cell;
-        };
-        var getTileCell = function(x,y) {
-            if (x<0 || x>subcols-1 || y<0 || y>subrows-1) {
-                return undefined;
-            }
-            x -= 2;
-            return tileCells[x+y*subcols];
-        };
-
-        // initialize tiles
-        var i;
-        for (i=0; i<subrows*fullcols; i++) {
-            tiles.push('_');
-        }
-        for (i=0; i<subrows*subcols; i++) {
-            tileCells.push(undefined);
-        }
-
-        // set tile cells
-        var c;
-        var x,y,w,h;
-        var x0,y0;
-        for (i=0; i<rows*cols; i++) {
-            c = cells[i];
-            for (x0=0; x0<c.final_w; x0++) {
-                for (y0=0; y0<c.final_h; y0++) {
-                    setTileCell(c.final_x+x0,c.final_y+1+y0,c);
-                }
-            }
-        }
-
-        // set path tiles
-        var cl, cu;
-        for (y=0; y<subrows; y++) {
-            for (x=0; x<subcols; x++) {
-                c = getTileCell(x,y); // cell
-                cl = getTileCell(x-1,y); // left cell
-                cu = getTileCell(x,y-1); // up cell
-
-                if (c) {
-                    // inside map
-                    if (cl && c.group != cl.group || // at vertical boundary
-                        cu && c.group != cu.group || // at horizontal boundary
-                        !cu && !c.connect[UP]) { // at top boundary
-                        setTile(x,y,'.');
-                    }
-                }
-                else {
-                    // outside map
-                    if (cl && (!cl.connect[RIGHT] || getTile(x-1,y) == '.') || // at right boundary
-                        cu && (!cu.connect[DOWN] || getTile(x,y-1) == '.')) { // at bottom boundary
-                        setTile(x,y,'.');
-                    }
-                }
-
-                // at corner connecting two paths
-                if (getTile(x-1,y) == '.' && getTile(x,y-1) == '.' && getTile(x-1,y-1) == '_') {
-                    setTile(x,y,'.');
-                }
-            }
-        }
-
-        // extend tunnels
-        var y;
-        for (c=cells[cols-1]; c; c = c.next[DOWN]) {
-            if (c.topTunnel) {
-                y = c.final_y+1;
-                setTile(subcols-1, y,'.');
-                setTile(subcols-2, y,'.');
-            }
-        }
-
-        // fill in walls
-        for (y=0; y<subrows; y++) {
-            for (x=0; x<subcols; x++) {
-                // any blank tile that shares a vertex with a path tile should be a wall tile
-                if (getTile(x,y) != '.' && (getTile(x-1,y) == '.' || getTile(x,y-1) == '.' || getTile(x+1,y) == '.' || getTile(x,y+1) == '.' ||
-                    getTile(x-1,y-1) == '.' || getTile(x+1,y-1) == '.' || getTile(x+1,y+1) == '.' || getTile(x-1,y+1) == '.')) {
-                    setTile(x,y,'|');
-                }
-            }
-        }
-
-        // create the ghost door
-        setTile(2,12,'-');
-
-        // set energizers
-        var getTopEnergizerRange = function() {
-            var miny;
-            var maxy = subrows/2;
-            var x = subcols-2;
-            var y;
-            for (y=2; y<maxy; y++) {
-                if (getTile(x,y) == '.' && getTile(x,y+1) == '.') {
-                    miny = y+1;
-                    break;
-                }
-            }
-            maxy = Math.min(maxy,miny+7);
-            for (y=miny+1; y<maxy; y++) {
-                if (getTile(x-1,y) == '.') {
-                    maxy = y-1;
-                    break;
-                }
-            }
-            return {miny:miny, maxy:maxy};
-        };
-        var getBotEnergizerRange = function() {
-            var miny = subrows/2;
-            var maxy;
-            var x = subcols-2;
-            var y;
-            for (y=subrows-3; y>=miny; y--) {
-                if (getTile(x,y) == '.' && getTile(x,y+1) == '.') {
-                    maxy = y;
-                    break;
-                }
-            }
-            miny = Math.max(miny,maxy-7);
-            for (y=maxy-1; y>miny; y--) {
-                if (getTile(x-1,y) == '.') {
-                    miny = y+1;
-                    break;
-                }
-            }
-            return {miny:miny, maxy:maxy};
-        };
-        var x = subcols-2;
-        var y;
-        var range;
-        if (range = getTopEnergizerRange()) {
-            y = getRandomInt(range.miny, range.maxy);
-            setTile(x,y,'o');
-        }
-        if (range = getBotEnergizerRange()) {
-            y = getRandomInt(range.miny, range.maxy);
-            setTile(x,y,'o');
-        }
-
-        // erase pellets in the tunnels
-        var eraseUntilIntersection = function(x,y) {
-            var adj;
-            while (true) {
-                adj = [];
-                if (getTile(x-1,y) == '.') {
-                    adj.push({x:x-1,y:y});
-                }
-                if (getTile(x+1,y) == '.') {
-                    adj.push({x:x+1,y:y});
-                }
-                if (getTile(x,y-1) == '.') {
-                    adj.push({x:x,y:y-1});
-                }
-                if (getTile(x,y+1) == '.') {
-                    adj.push({x:x,y:y+1});
-                }
-                if (adj.length == 1) {
-                    setTile(x,y,' ');
-                    x = adj[0].x;
-                    y = adj[0].y;
-                }
-                else {
-                    break;
-                }
-            }
-        };
-        x = subcols-1;
-        for (y=0; y<subrows; y++) {
-            if (getTile(x,y) == '.') {
-                eraseUntilIntersection(x,y);
-            }
-        }
-
-        // erase pellets on starting position
-        setTile(1,subrows-8,' ');
-
-        // erase pellets around the ghost house
-        var i,j;
-        var y;
-        for (i=0; i<7; i++) {
-
-            // erase pellets from bottom of the ghost house proceeding down until
-            // reaching a pellet tile that isn't surround by walls
-            // on the left and right
-            y = subrows-14;
-            setTile(i, y, ' ');
-            j = 1;
-            while (getTile(i,y+j) == '.' &&
-                    getTile(i-1,y+j) == '|' &&
-                    getTile(i+1,y+j) == '|') {
-                setTile(i,y+j,' ');
-                j++;
-            }
-
-            // erase pellets from top of the ghost house proceeding up until
-            // reaching a pellet tile that isn't surround by walls
-            // on the left and right
-            y = subrows-20;
-            setTile(i, y, ' ');
-            j = 1;
-            while (getTile(i,y-j) == '.' &&
-                    getTile(i-1,y-j) == '|' &&
-                    getTile(i+1,y-j) == '|') {
-                setTile(i,y-j,' ');
-                j++;
-            }
-        }
-        // erase pellets on the side of the ghost house
-        for (i=0; i<7; i++) {
-
-            // erase pellets from side of the ghost house proceeding right until
-            // reaching a pellet tile that isn't surround by walls
-            // on the top and bottom.
-            x = 6;
-            y = subrows-14-i;
-            setTile(x, y, ' ');
-            j = 1;
-            while (getTile(x+j,y) == '.' &&
-                    getTile(x+j,y-1) == '|' &&
-                    getTile(x+j,y+1) == '|') {
-                setTile(x+j,y,' ');
-                j++;
-            }
-        }
-
-        // return a tile string (3 empty lines on top and 2 on bottom)
-        return (
-            "____________________________" +
-            "____________________________" +
-            "____________________________" +
-            tiles.join("") +
-            "____________________________" +
-            "____________________________");
-    };
-
-    var randomColor = function() {
-        return '#'+('00000'+(Math.random()*(1<<24)|0).toString(16)).slice(-6);
-    };
-
-    // dijkstra's algorithm to find shortest path to all tiles from (x0,y0)
-    // we also remove (destroyX,destroyY) from the map to try to constrain the path
-    // from going a certain way from the start.
-    // (We created this because the ghost's minimum distance direction is not always sufficient in procedural maps)
-    var getShortestDistGraph = function(map,x0,y0,isNodeTile) {
-
-        // build graph
-        var graph = {};
-        var x,y,i,j;
-        for (y=0; y<36; y++) {
-            for (x=0; x<28; x++) {
-                if (isNodeTile(x,y)) {
-                    i = x+y*28;
-                    graph[i] = {'x':x, 'y':y, 'dist':Infinity, 'penult':undefined, 'neighbors':[], 'completed':false};
-                    if (isNodeTile(x-1,y)) {
-                        j = i-1;
-                        graph[i].neighbors.push(graph[j]);
-                        graph[j].neighbors.push(graph[i]);
-                    }
-                    if (isNodeTile(x,y-1)) {
-                        j = i-28;
-                        graph[i].neighbors.push(graph[j]);
-                        graph[j].neighbors.push(graph[i]);
-                    }
-                }
-            }
-        }
-
-        var node = graph[x0+y0*28];
-        node.completed = true;
-        node.dist = 0;
-        var d;
-        var next_node,min_dist,dist;
-        while (true) {
-
-            // update distances of current node's neighbors
-            for (i=0; i<4; i++) {
-                d = node.neighbors[i];
-                if (d && !d.completed) {
-                    dist = node.dist+1;
-                    if (dist == d.dist) {
-                        if (Math.random() < 0.5) {
-                            d.penult = node;
-                        }
-                    }
-                    else if (dist < d.dist) {
-                        d.dist = dist;
-                        d.penult = node;
-                    }
-                }
-            }
-
-            // find next node to process (closest fringe node)
-            next_node = undefined;
-            min_dist = Infinity;
-            for (i=0; i<28*36; i++) {
-                d = graph[i];
-                if (d && !d.completed) {
-                    if (d.dist < min_dist) { 
-                        next_node = d;
-                        min_dist = d.dist;
-                    }
-                }
-            }
-
-            if (!next_node) {
-                break;
-            }
-
-            node = next_node;
-            node.completed = true;
-        }
-
-        return graph;
-    };
-
-    // retrieves the direction enum from a node's penultimate node to itself.
-    var getDirFromPenult = function(node) {
-        if (!node.penult) {
-            return undefined;
-        }
-        var dx = node.x - node.penult.x;
-        var dy = node.y - node.penult.y;
-        if (dy == -1) {
-            return DIR_UP;
-        }
-        else if (dy == 1) {
-            return DIR_DOWN;
-        }
-        else if (dx == -1) {
-            return DIR_LEFT;
-        }
-        else if (dx == 1) {
-            return DIR_RIGHT;
-        }
-    };
-
-    // sometimes the ghosts can get stuck in loops when trying to return home
-    // so we build a path from all tiles to the ghost door tile
-    var makeExitPaths = function(map) {
-        var isNodeTile = function(x,y) {
-            if (x<0 || x>=28 || y<0 || y>=36) {
-                return false;
-            }
-            return map.isFloorTile(x,y);
-        };
-        var graph = getShortestDistGraph(map,map.doorTile.x,map.doorTile.y,isNodeTile);
-
-        // give the map a function that tells the ghost which direction to go to return home
-        map.getExitDir = function(x,y) {
-            if (x<0 || x>=28 || y<0 || y>=36) {
-                return undefined;
-            }
-            var node = graph[x+y*28];
-            var dirEnum = getDirFromPenult(node);
-            if (dirEnum != undefined) {
-                return rotateAboutFace(dirEnum); // reverse direction (door->ghost to door<-ghost)
-            }
-        };
-    };
-
-    // add fruit paths to a map
-    var makeFruitPaths = (function(){
-        var reversed = {
-            'v':'^',
-            '^':'v',
-            '<':'>',
-            '>':'<',
-        };
-        var reversePath = function(path) {
-            var rpath = "";
-            var i;
-            for (i=path.length-1; i>=0; i--) {
-                rpath += reversed[path[i]];
-            }
-            return rpath;
-        };
-
-        var dirChars = {};
-        dirChars[DIR_UP] = '^';
-        dirChars[DIR_DOWN] = 'v';
-        dirChars[DIR_LEFT] = '<';
-        dirChars[DIR_RIGHT] = '>';
-
-        var getPathFromGraph = function(graph,x0,y0,x1,y1,reverse) {
-            // from (x0,y0) to (x1,y1)
-            var start_node = graph[x0+y0*28];
-            var dx,dy;
-            var path = "";
-            var node;
-            for (node=graph[x1+y1*28]; node!=start_node; node=node.penult) {
-                path = dirChars[getDirFromPenult(node)] + path;
-            }
-            return reverse ? reversePath(path) : path;
-        }
-
-        return function(map) {
-
-            paths = {entrances:[], exits:[]};
-
-            var isFloorTile = function(x,y) {
-                if (x<0 || x>=28 || y<0 || y>=36) {
-                    return false
-                }
-                return map.isFloorTile(x,y);
-            };
-
-            enter_graph = getShortestDistGraph(map,15,20, function(x,y) { return (x==14 && y==20) ? false : isFloorTile(x,y); });
-            exit_graph =  getShortestDistGraph(map,16,20, function(x,y) { return (x==17 && y==20) ? false : isFloorTile(x,y); });
-
-            // start at (15,20)
-            for (y=0; y<36; y++) {
-                if (map.isFloorTile(-1,y)) {
-
-                    // left entrance
-                    paths.entrances.push({
-                        'start': {'y':y*8+4, 'x': -4},
-                        'path': '>'+getPathFromGraph(enter_graph, 15,20, 0,y, true)});
-
-                    // right entrance
-                    paths.entrances.push({
-                        'start': {'y':y*8+4, 'x': 28*8+4},
-                        'path': '<'+getPathFromGraph(enter_graph, 15,20, 27,y, true)});
-
-                    // left exit
-                    paths.exits.push({
-                        'start': {'y':y*8+4, 'x': -4},
-                        'path': getPathFromGraph(exit_graph, 16,20, 0,y, false)+'<'});
-
-                    // right exit
-                    paths.exits.push({
-                        'start': {'y':y*8+4, 'x': 28*8+4},
-                        'path': getPathFromGraph(exit_graph, 16,20, 27,y, false)+'>'});
-                }
-            }
-
-            map.fruitPaths = paths;
-        };
-    })();
-
-    return function() {
-        genRandom();
-        var map = new Map(28,36,getTiles());
-
-        makeFruitPaths(map);
-        makeExitPaths(map);
-
-        map.name = "Random Map";
-        map.wallFillColor = randomColor();
-        map.wallStrokeColor = rgbString(hslToRgb(Math.random(), Math.random(), Math.random() * 0.4 + 0.6));
-        map.pelletColor = "#ffb8ae";
-
-        return map;
-    };
-})();
-//@line 1 "src/atlas.js"
 
 var atlas = (function(){
 
@@ -2412,11 +762,6 @@ var atlas = (function(){
         drawGrid();
         canvas = document.getElementById('atlas');
         ctx = canvas.getContext("2d");
-        /*
-        canvas.style.left = 0;
-        canvas.style.top = 0;
-        canvas.style.position = "absolute";
-        */
 
         var w = size*cols*renderScale;
         var h = size*rows*renderScale;
@@ -2440,18 +785,6 @@ var atlas = (function(){
 
         var row = 0;
         drawAtCell(function(x,y) { drawCherry(ctx,x,y); },      row,0);
-        drawAtCell(function(x,y) { drawStrawberry(ctx,x,y); },  row,1);
-        drawAtCell(function(x,y) { drawOrange(ctx,x,y); },      row,2);
-        drawAtCell(function(x,y) { drawApple(ctx,x,y); },       row,3);
-        drawAtCell(function(x,y) { drawMelon(ctx,x,y); },       row,4);
-        drawAtCell(function(x,y) { drawGalaxian(ctx,x,y); },    row,5);
-        drawAtCell(function(x,y) { drawBell(ctx,x,y); },        row,6);
-        drawAtCell(function(x,y) { drawKey(ctx,x,y); },         row,7);
-        drawAtCell(function(x,y) { drawPretzel(ctx,x,y); },     row,8);
-        drawAtCell(function(x,y) { drawPear(ctx,x,y); },        row,9);
-        drawAtCell(function(x,y) { drawBanana(ctx,x,y); },      row,10);
-        drawAtCell(function(x,y) { drawCookie(ctx,x,y); },      row,11);
-        drawAtCell(function(x,y) { drawCookieFlash(ctx,x,y); },      row,12);
 
         var drawGhostCells = function(row,color) {
             var i,f;
@@ -2601,35 +934,6 @@ var atlas = (function(){
         drawAtCell(function(x,y) { drawPacPoints(ctx, x,y, 3000, "#ffb8ff"); }, row, 10);
         drawAtCell(function(x,y) { drawPacPoints(ctx, x,y, 5000, "#ffb8ff"); }, row, 11);
         row++;
-        drawAtCell(function(x,y) { drawMsPacPoints(ctx, x,y, 100, "#fff"); }, row, 0);
-        drawAtCell(function(x,y) { drawMsPacPoints(ctx, x,y, 200, "#fff"); }, row, 1);
-        drawAtCell(function(x,y) { drawMsPacPoints(ctx, x,y, 500, "#fff"); }, row, 2);
-        drawAtCell(function(x,y) { drawMsPacPoints(ctx, x,y, 700, "#fff"); }, row, 3);
-        drawAtCell(function(x,y) { drawMsPacPoints(ctx, x,y, 1000, "#fff"); }, row, 4);
-        drawAtCell(function(x,y) { drawMsPacPoints(ctx, x,y, 2000, "#fff"); }, row, 5);
-        drawAtCell(function(x,y) { drawMsPacPoints(ctx, x,y, 5000, "#fff"); }, row, 6);
-
-        row++;
-        drawAtCell(function(x,y) {
-            drawSnail(ctx,x,y, "#0ff");
-        }, row, 0);
-        drawAtCell(function(x,y) {
-            drawSnail(ctx,x,y, "#FFF");
-        }, row, 1);
-
-        var drawMsOttoCells = function(row,col,dir) {
-            var i;
-            for (i=0; i<4; i++) { // frame
-                drawAtCell(function(x,y) { drawMsOttoSprite(ctx, x,y, dir, i); }, row, col);
-                col++;
-            }
-        };
-        row++;
-        drawMsOttoCells(row,0, DIR_UP);
-        drawMsOttoCells(row,4, DIR_RIGHT);
-        row++;
-        drawMsOttoCells(row,0, DIR_DOWN);
-        drawMsOttoCells(row,4, DIR_LEFT);
 
     };
 
@@ -2854,19 +1158,7 @@ var atlas = (function(){
     var copyFruitSprite = function(destCtx,x,y,name) {
         var row = 0;
         var col = {
-            "cherry": 0,
-            "strawberry": 1,
-            "orange": 2,
-            "apple": 3,
-            "melon": 4,
-            "galaxian": 5,
-            "bell": 6,
-            "key": 7,
-            "pretzel": 8,
-            "pear": 9,
-            "banana": 10,
-            "cookie": 11,
-            "cookieface": 12,
+            "cherry": 0
         }[name];
 
         copyCellTo(row,col,destCtx,x,y);
@@ -2890,12 +1182,10 @@ var atlas = (function(){
         drawSnail: copySnail,
     };
 })();
-//@line 1 "src/renderers.js"
-//////////////////////////////////////////////////////////////
-// Renderers
 
-// Draws everything in the game using swappable renderers
-// to enable to different front-end displays for Pac-Man.
+
+// Renderers
+// Draws everything in the game using swappable renderers to enable to different front-end displays for Pac-Man.
 
 // list of available renderers
 var renderer_list;
@@ -2987,7 +1277,7 @@ var initRenderer = function(){
 
     // maximize the scale to fit the window
     var fullscreen = function() {
-        // NOTE: css-scaling alternative at https://gist.github.com/1184900
+
         renderScale = scale = getTargetScale();
         resetCanvasSizes();
         atlas.create();
@@ -3003,12 +1293,6 @@ var initRenderer = function(){
         var w = screenWidth*s;
         var x = Math.max(0,(window.innerWidth-10)/2 - w/2);
         var y = 0;
-        /*
-        canvas.style.position = "absolute";
-        canvas.style.left = x;
-        canvas.style.top = y;
-        console.log(canvas.style.left);
-        */
         document.body.style.marginLeft = (window.innerWidth - w)/2 + "px";
     };
 
@@ -3363,7 +1647,7 @@ var initRenderer = function(){
 
     };
 
-    //////////////////////////////////////////////////////////////
+
     // Simple Renderer
     // (render a minimal Pac-Man display using nothing but squares)
 
@@ -3527,7 +1811,7 @@ var initRenderer = function(){
     });
 
 
-    //////////////////////////////////////////////////////////////
+
     // Arcade Renderer
     // (render a display close to the original arcade)
 
@@ -3867,26 +2151,6 @@ var initRenderer = function(){
                     this.drawExplodingPlayer(f/15);
                 }
             }
-            else if (gameMode == GAME_OTTO) {
-                // TODO: spin around
-                if (t < 0.8) {
-                    var dirEnum = Math.floor((pacman.dirEnum - t*16))%4;
-                    if (dirEnum < 0) {
-                        dirEnum += 4;
-                    }
-                    drawOttoSprite(ctx, pacman.pixel.x, pacman.pixel.y, dirEnum, 0);
-                }
-                else if (t < 0.95) {
-                    var dirEnum = Math.floor((pacman.dirEnum - 0.8*16))%4;
-                    if (dirEnum < 0) {
-                        dirEnum += 4;
-                    }
-                    drawOttoSprite(ctx, pacman.pixel.x, pacman.pixel.y, dirEnum, 0);
-                }
-                else {
-                    drawDeadOttoSprite(ctx,pacman.pixel.x, pacman.pixel.y);
-                }
-            }
         },
 
         // draw exploding pacman animation (with 0<=t<=1)
@@ -3936,7 +2200,9 @@ var initRenderer = function(){
     ];
     renderer = renderer_list[1];
 };
-//@line 1 "src/hud.js"
+
+
+
 
 var hud = (function(){
 
@@ -3975,77 +2241,8 @@ var hud = (function(){
     };
 
 })();
-//@line 1 "src/galagaStars.js"
 
-var galagaStars = (function() {
-
-    var stars = {};
-    var numStars = 200;
-
-    var width = mapWidth;
-    var height = Math.floor(mapHeight*1.5);
-
-    var ypos;
-    var yspeed=-0.5;
-
-    var t;
-    var flickerPeriod = 120;
-    var flickerSteps = 4;
-    var flickerGap = flickerPeriod / flickerSteps;
-
-    var init = function() {
-        t = 0;
-        ypos = 0;
-        var i;
-        for (i=0; i<numStars; i++) {
-            stars[i] = {
-                x: getRandomInt(0,width-1),
-                y: getRandomInt(0,height-1),
-                color: getRandomColor(),
-                phase: getRandomInt(0,flickerPeriod-1),
-            };
-        }
-    };
-
-    var update = function() {
-        t++;
-        t %= flickerPeriod;
-
-        ypos += yspeed;
-        ypos %= height;
-        if (ypos < 0) {
-            ypos += height;
-        }
-    };
-
-    var draw = function(ctx) {
-        var i;
-        var star;
-        var time;
-        var y;
-        ctx.fillStyle = "#FFF";
-        for (i=0; i<numStars; i++) {
-            star = stars[i];
-            time = (t + star.phase) % flickerPeriod;
-            if (time >= flickerGap) {
-                y = star.y - ypos;
-                if (y < 0) {
-                    y += height;
-                }
-                ctx.fillStyle = star.color;
-                ctx.fillRect(star.x, y, 1,1);
-            }
-        }
-    };
-
-    return {
-        init: init,
-        draw: draw,
-        update: update,
-    };
-
-})();
-//@line 1 "src/Button.js"
+//Button
 var getPointerPos = function(evt) {
     var obj = canvas;
     var top = 0;
@@ -4307,7 +2504,8 @@ ToggleButton.prototype = newChildObject(Button.prototype, {
     },
 
 });
-//@line 1 "src/Menu.js"
+
+
 var Menu = function(title,x,y,w,h,pad,font,fontcolor) {
     this.title = title;
     this.x = x;
@@ -4461,8 +2659,7 @@ Menu.prototype = {
         }
     },
 };
-//@line 1 "src/inGameMenu.js"
-////////////////////////////////////////////////////
+
 // In-Game Menu
 var inGameMenu = (function() {
 
@@ -4521,78 +2718,8 @@ var inGameMenu = (function() {
     });
     menu.backButton = menu.buttons[0];
 
-    // practice menu
-    var practiceMenu = new Menu("PAUSED",2*tileSize,5*tileSize,mapWidth-4*tileSize,3*tileSize,tileSize,tileSize+"px ArcadeR", "#EEE");
-    practiceMenu.addTextButton("RESUME", function() {
-        hideMainMenu();
-        vcr.onHudEnable();
-    });
-    practiceMenu.addTextButton("RESTART LEVEL", function() {
-        showConfirm("RESTART LEVEL?", function() {
-            level--;
-            switchState(readyNewState, 60);
-        });
-    });
-    practiceMenu.addTextButton("SKIP LEVEL", function() {
-        showConfirm("SKIP LEVEL?", function() {
-            switchState(readyNewState, 60);
-        });
-    });
-    practiceMenu.addTextButton("CHEATS", function() {
-        practiceMenu.disable();
-        cheatsMenu.enable();
-    });
-    practiceMenu.addTextButton("QUIT", function() {
-        showConfirm("QUIT GAME?", function() {
-            switchState(homeState, 60);
-            clearCheats();
-            vcr.reset();
-        });
-    });
-    practiceMenu.backButton = practiceMenu.buttons[0];
-
-    // cheats menu
-    var cheatsMenu = new Menu("CHEATS",2*tileSize,5*tileSize,mapWidth-4*tileSize,3*tileSize,tileSize,tileSize+"px ArcadeR", "#EEE");
-    cheatsMenu.addToggleTextButton("INVINCIBLE",
-        function() {
-            return pacman.invincible;
-        },
-        function(on) {
-            pacman.invincible = on;
-        });
-    cheatsMenu.addToggleTextButton("TURBO",
-        function() {
-            return turboMode;
-        },
-        function(on) {
-            turboMode = on;
-        });
-    cheatsMenu.addToggleTextButton("SHOW TARGETS",
-        function() {
-            return blinky.isDrawTarget;
-        },
-        function(on) {
-            for (var i=0; i<4; i++) {
-                ghosts[i].isDrawTarget = on;
-            }
-        });
-    cheatsMenu.addToggleTextButton("SHOW PATHS",
-        function() {
-            return blinky.isDrawPath;
-        },
-        function(on) {
-            for (var i=0; i<4; i++) {
-                ghosts[i].isDrawPath = on;
-            }
-        });
-    cheatsMenu.addSpacer(1);
-    cheatsMenu.addTextButton("BACK", function() {
-        cheatsMenu.disable();
-        practiceMenu.enable();
-    });
-    cheatsMenu.backButton = cheatsMenu.buttons[cheatsMenu.buttons.length-1];
-
-    var menus = [menu, practiceMenu, confirmMenu, cheatsMenu];
+    
+    var menus = [menu, confirmMenu];
     var getVisibleMenu = function() {
         var len = menus.length;
         var i;
@@ -6370,7 +4497,6 @@ var drawCookiemanSprite = (function(){
     };
 })();
 
-////////////////////////////////////////////////////////////////////
 // FRUIT SPRITES
 
 var drawCherry = function(ctx,x,y) {
@@ -6420,604 +4546,10 @@ var drawCherry = function(ctx,x,y) {
     ctx.restore();
 };
 
-var drawStrawberry = function(ctx,x,y) {
-    ctx.save();
-    ctx.translate(x,y);
-
-    // red body
-    ctx.beginPath();
-    ctx.moveTo(-1,-4);
-    ctx.bezierCurveTo(-3,-4,-5,-3, -5,-1);
-    ctx.bezierCurveTo(-5,3,-2,5, 0,6);
-    ctx.bezierCurveTo(3,5, 5,2, 5,0);
-    ctx.bezierCurveTo(5,-3, 3,-4, 0,-4);
-    ctx.fillStyle = "#f00";
-    ctx.fill();
-    ctx.strokeStyle = "#f00";
-    ctx.stroke();
-
-    // white spots
-    var spots = [
-        {x:-4,y:-1},
-        {x:-3,y:2 },
-        {x:-2,y:0 },
-        {x:-1,y:4 },
-        {x:0, y:2 },
-        {x:0, y:0 },
-        {x:2, y:4 },
-        {x:2, y:-1 },
-        {x:3, y:1 },
-        {x:4, y:-2 } ];
-
-    ctx.fillStyle = "#fff";
-    var i,len;
-    for (i=0, len=spots.length; i<len; i++) {
-        var s = spots[i];
-        ctx.beginPath();
-        ctx.arc(s.x,s.y,0.75,0,2*Math.PI);
-        ctx.fill();
-    }
-
-    // green leaf
-    ctx.beginPath();
-    ctx.moveTo(0,-4);
-    ctx.lineTo(-3,-4);
-    ctx.lineTo(0,-4);
-    ctx.lineTo(-2,-3);
-    ctx.lineTo(-1,-3);
-    ctx.lineTo(0,-4);
-    ctx.lineTo(0,-2);
-    ctx.lineTo(0,-4);
-    ctx.lineTo(1,-3);
-    ctx.lineTo(2,-3);
-    ctx.lineTo(0,-4);
-    ctx.lineTo(3,-4);
-    ctx.closePath();
-    ctx.strokeStyle = "#00ff00";
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-
-    // stem
-    ctx.beginPath();
-    ctx.moveTo(0,-4);
-    ctx.lineTo(0,-5);
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = "#fff";
-    ctx.stroke();
-    ctx.restore();
-};
-
-var drawOrange = function(ctx,x,y) {
-    ctx.save();
-    ctx.translate(x,y);
-
-    // orange body
-    ctx.beginPath();
-    ctx.moveTo(-2,-2);
-    ctx.bezierCurveTo(-3,-2, -5,-1, -5,1);
-    ctx.bezierCurveTo(-5,4, -3,6, 0,6);
-    ctx.bezierCurveTo(3,6, 5,4, 5,1);
-    ctx.bezierCurveTo(5,-1, 3,-2, 2,-2);
-    ctx.closePath();
-    ctx.fillStyle="#ffcc33";
-    ctx.fill();
-    ctx.strokeStyle = "#ffcc33";
-    ctx.stroke();
-
-    // stem
-    ctx.beginPath();
-    ctx.moveTo(-1,-1);
-    ctx.quadraticCurveTo(-1,-2,-2,-2);
-    ctx.quadraticCurveTo(-1,-2,-1,-4);
-    ctx.quadraticCurveTo(-1,-2,0,-2);
-    ctx.quadraticCurveTo(-1,-2,-1,-1);
-    ctx.strokeStyle = "#ff9900";
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-
-    // green leaf
-    ctx.beginPath();
-    ctx.moveTo(-0.5,-4);
-    ctx.quadraticCurveTo(0,-5,1,-5);
-    ctx.bezierCurveTo(2,-5, 3,-4,4,-4);
-    ctx.bezierCurveTo(3,-4, 3,-3, 2,-3);
-    ctx.bezierCurveTo(1,-3,1,-4,-0.5,-4);
-    ctx.strokeStyle = "#00ff00";
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-    ctx.fillStyle = "#00ff00";
-    ctx.fill();
-
-    ctx.restore();
-};
-
-var drawApple = function(ctx,x,y) {
-    ctx.save();
-    ctx.translate(x,y);
-
-    // red fruit
-    ctx.beginPath();
-    ctx.moveTo(-2,-3);
-    ctx.bezierCurveTo(-2,-4,-3,-4,-4,-4);
-    ctx.bezierCurveTo(-5,-4,-6,-3,-6,0);
-    ctx.bezierCurveTo(-6,3,-4,6,-2.5,6);
-    ctx.quadraticCurveTo(-1,6,-1,5);
-    ctx.bezierCurveTo(-1,6,0,6,1,6);
-    ctx.bezierCurveTo(3,6, 5,3, 5,0);
-    ctx.bezierCurveTo(5,-3, 3,-4, 2,-4);
-    ctx.quadraticCurveTo(0,-4,0,-3);
-    ctx.closePath();
-    ctx.fillStyle = "#ff0000";
-    ctx.fill();
-
-    // stem
-    ctx.beginPath();
-    ctx.moveTo(-1,-3);
-    ctx.quadraticCurveTo(-1,-5, 0,-5);
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#ff9900';
-    ctx.stroke();
-
-    // shine
-    ctx.beginPath();
-    ctx.moveTo(2,3);
-    ctx.quadraticCurveTo(3,3, 3,1);
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = "#fff";
-    ctx.stroke();
-
-    ctx.restore();
-};
-
-var drawMelon = function(ctx,x,y) {
-    ctx.save();
-    ctx.translate(x,y);
-
-    // draw body
-    ctx.beginPath();
-    ctx.arc(0,2,5.5,0,Math.PI*2);
-    ctx.fillStyle = "#7bf331";
-    ctx.fill();
-
-    // draw stem
-    ctx.beginPath();
-    ctx.moveTo(0,-4);
-    ctx.lineTo(0,-5);
-    ctx.moveTo(2,-5);
-    ctx.quadraticCurveTo(-3,-5,-3,-6);
-    ctx.strokeStyle="#69b4af";
-    ctx.lineCap = "round";
-    ctx.stroke();
-
-    // dark lines
-    /*
-    ctx.beginPath();
-    ctx.moveTo(0,-2);
-    ctx.lineTo(-4,2);
-    ctx.lineTo(-1,5);
-    ctx.moveTo(-3,-1);
-    ctx.lineTo(-2,0);
-    ctx.moveTo(-2,6);
-    ctx.lineTo(1,3);
-    ctx.moveTo(1,7);
-    ctx.lineTo(3,5);
-    ctx.lineTo(0,2);
-    ctx.lineTo(3,-1);
-    ctx.moveTo(2,0);
-    ctx.lineTo(4,2);
-    ctx.strokeStyle="#69b4af";
-    ctx.lineCap = "round";
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-    */
-    // dark spots
-    var spots = [
-        0,-2,
-        -1,-1,
-        -2,0,
-        -3,1,
-        -4,2,
-        -3,3,
-        -2,4,
-        -1,5,
-        -2,6,
-        -3,-1,
-        1,7,
-        2,6,
-        3,5,
-        2,4,
-        1,3,
-        0,2,
-        1,1,
-        2,0,
-        3,-1,
-        3,1,
-        4,2,
-         ];
-
-    ctx.fillStyle="#69b4af";
-    var i,len;
-    for (i=0, len=spots.length; i<len; i+=2) {
-        var x = spots[i];
-        var y = spots[i+1];
-        ctx.beginPath();
-        ctx.arc(x,y,0.65,0,2*Math.PI);
-        ctx.fill();
-    }
-
-    // white spots
-    var spots = [
-        {x: 0,y:-3},
-        {x:-2,y:-1},
-        {x:-4,y: 1},
-        {x:-3,y: 3},
-        {x: 1,y: 0},
-        {x:-1,y: 2},
-        {x:-1,y: 4},
-        {x: 3,y: 2},
-        {x: 1,y: 4},
-         ];
-
-    ctx.fillStyle = "#fff";
-    var i,len;
-    for (i=0, len=spots.length; i<len; i++) {
-        var s = spots[i];
-        ctx.beginPath();
-        ctx.arc(s.x,s.y,0.65,0,2*Math.PI);
-        ctx.fill();
-    }
-
-    ctx.restore();
-};
-
-var drawGalaxian = function(ctx,x,y) {
-    ctx.save();
-    ctx.translate(x,y);
-
-    // draw yellow body
-    ctx.beginPath();
-    ctx.moveTo(-4,-2);
-    ctx.lineTo(4,-2);
-    ctx.lineTo(4,-1);
-    ctx.lineTo(2,1);
-    ctx.lineTo(1,0);
-    ctx.lineTo(0,0);
-    ctx.lineTo(0,5);
-    ctx.lineTo(0,0);
-    ctx.lineTo(-1,0);
-    ctx.lineTo(-2,1);
-    ctx.lineTo(-4,-1);
-    ctx.closePath();
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = ctx.fillStyle = '#fffa36';
-    ctx.fill();
-    ctx.stroke();
-
-    // draw red arrow head
-    ctx.beginPath();
-    ctx.moveTo(0,-5);
-    ctx.lineTo(-3,-2);
-    ctx.lineTo(-2,-2);
-    ctx.lineTo(-1,-3);
-    ctx.lineTo(0,-3);
-    ctx.lineTo(0,-1);
-    ctx.lineTo(0,-3);
-    ctx.lineTo(1,-3);
-    ctx.lineTo(2,-2);
-    ctx.lineTo(3,-2);
-    ctx.closePath();
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = ctx.fillStyle = "#f00";
-    ctx.fill();
-    ctx.stroke();
-
-    // draw blue wings
-    ctx.beginPath();
-    ctx.moveTo(-5,-4);
-    ctx.lineTo(-5,-1);
-    ctx.lineTo(-2,2);
-    ctx.moveTo(5,-4);
-    ctx.lineTo(5,-1);
-    ctx.lineTo(2,2);
-    ctx.strokeStyle = "#00f";
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-
-    ctx.restore();
-};
-
-var drawBell = function(ctx,x,y) {
-    ctx.save();
-    ctx.translate(x,y);
-
-    // bell body
-    ctx.beginPath();
-    ctx.moveTo(-1,-5);
-    ctx.bezierCurveTo(-4,-5,-6,1,-6,6);
-    ctx.lineTo(5,6);
-    ctx.bezierCurveTo(5,1,3,-5,0,-5);
-    ctx.closePath();
-    ctx.fillStyle = ctx.strokeStyle = "#fffa37";
-    ctx.stroke();
-    ctx.fill();
-
-    // marks
-    ctx.beginPath();
-    ctx.moveTo(-4,4);
-    ctx.lineTo(-4,3);
-    ctx.moveTo(-3,1);
-    ctx.quadraticCurveTo(-3,-2,-2,-2);
-    ctx.moveTo(-1,-4);
-    ctx.lineTo(0,-4);
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#000';
-    ctx.stroke();
-
-    // bell bottom
-    ctx.beginPath();
-    ctx.rect(-5.5,6,10,2);
-    ctx.fillStyle = "#68b9fc";
-    ctx.fill();
-    ctx.beginPath();
-    ctx.rect(-0.5,6,2,2);
-    ctx.fillStyle = '#fff';
-    ctx.fill();
-
-    ctx.restore();
-};
-
-var drawKey = function(ctx,x,y) {
-    ctx.save();
-    ctx.translate(x,y);
-
-    // draw key metal
-    ctx.beginPath();
-    ctx.moveTo(-1,-2);
-    ctx.lineTo(-1,5);
-    ctx.moveTo(0,6);
-    ctx.quadraticCurveTo(1,6,1,3);
-    ctx.moveTo(1,4);
-    ctx.lineTo(2,4);
-    ctx.moveTo(1,1);
-    ctx.lineTo(1,-2);
-    ctx.moveTo(1,0);
-    ctx.lineTo(2,0);
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#fff';
-    ctx.stroke();
-
-    // draw key top
-    ctx.beginPath();
-    ctx.moveTo(0,-6);
-    ctx.quadraticCurveTo(-3,-6,-3,-4);
-    ctx.lineTo(-3,-2);
-    ctx.lineTo(3,-2);
-    ctx.lineTo(3,-4);
-    ctx.quadraticCurveTo(3,-6, 0,-6);
-    ctx.strokeStyle = ctx.fillStyle = "#68b9fc";
-    ctx.fill();
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(1,-5);
-    ctx.lineTo(-1,-5);
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = "#000";
-    ctx.stroke();
-
-    ctx.restore();
-};
-
-var drawPretzel = function(ctx,x,y) {
-    ctx.save();
-    ctx.translate(x,y);
-
-    // bread
-    ctx.beginPath();
-    ctx.moveTo(-2,-5);
-    ctx.quadraticCurveTo(-4,-6,-6,-4);
-    ctx.quadraticCurveTo(-7,-2,-5,1);
-    ctx.quadraticCurveTo(-3,4,0,5);
-    ctx.quadraticCurveTo(5,5,5,-1);
-    ctx.quadraticCurveTo(6,-5,3,-5);
-    ctx.quadraticCurveTo(1,-5,0,-2);
-    ctx.quadraticCurveTo(-2,3,-5,5);
-    ctx.moveTo(1,1);
-    ctx.quadraticCurveTo(3,4,4,6);
-    ctx.lineWidth = 2.0;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = "#ffcc33";
-    ctx.stroke();
-
-    // salt
-    var spots = [
-        -5,-6,
-        1,-6,
-        4,-4,
-        -5,0,
-        -2,0,
-        6,1,
-        -4,6,
-        5,5,
-         ];
-
-    ctx.fillStyle = "#fff";
-    var i,len;
-    for (i=0, len=spots.length; i<len; i+=2) {
-        var x = spots[i];
-        var y = spots[i+1];
-        ctx.beginPath();
-        ctx.arc(x,y,0.65,0,2*Math.PI);
-        ctx.fill();
-    }
-
-    ctx.restore();
-};
-
-var drawPear = function(ctx,x,y) {
-    ctx.save();
-    ctx.translate(x,y);
-
-    // body
-    ctx.beginPath();
-    ctx.moveTo(0,-4);
-    ctx.bezierCurveTo(-1,-4,-2,-3,-2,-1);
-    ctx.bezierCurveTo(-2,1,-4,2,-4,4);
-    ctx.bezierCurveTo(-4,6,-2,7,0,7);
-    ctx.bezierCurveTo(2,7,4,6,4,4);
-    ctx.bezierCurveTo(4,2,2,1,2,-1);
-    ctx.bezierCurveTo(2,-3,1,-4,0,-4);
-    ctx.fillStyle = ctx.strokeStyle = "#00ff00";
-    ctx.stroke();
-    ctx.fill();
-
-    // blue shine
-    ctx.beginPath();
-    ctx.moveTo(-2,3);
-    ctx.quadraticCurveTo(-2,5,-1,5);
-    ctx.strokeStyle = "#0033ff";
-    ctx.lineCap = 'round';
-    ctx.stroke();
-
-    // white stem
-    ctx.beginPath();
-    ctx.moveTo(0,-4);
-    ctx.quadraticCurveTo(0,-6,2,-6);
-    ctx.strokeStyle = "#fff";
-    ctx.lineCap = 'round';
-    ctx.stroke();
-
-    ctx.restore();
-};
-
-var drawBanana = function(ctx,x,y) {
-    ctx.save();
-    ctx.translate(x,y);
-
-    // body
-    ctx.beginPath();
-    ctx.moveTo(-5,5);
-    ctx.quadraticCurveTo(-4,5,-2,6);
-    ctx.bezierCurveTo(2,6,6,2,6,-4);
-    ctx.lineTo(3,-3);
-    ctx.lineTo(3,-2);
-    ctx.lineTo(-4,5);
-    ctx.closePath();
-    ctx.fillStyle = ctx.strokeStyle = "#ffff00";
-    ctx.stroke();
-    ctx.fill();
-
-    // stem
-    ctx.beginPath();
-    ctx.moveTo(4,-5);
-    ctx.lineTo(5,-6);
-    ctx.strokeStyle="#ffff00";
-    ctx.lineCap='round';
-    ctx.stroke();
-
-    // black mark
-    ctx.beginPath();
-    ctx.moveTo(3,-1);
-    ctx.lineTo(-2,4);
-    ctx.strokeStyle = "#000";
-    ctx.lineCap='round';
-    ctx.stroke();
-
-    // shine
-    ctx.beginPath();
-    ctx.moveTo(2,3);
-    ctx.lineTo(0,5);
-    ctx.strokeStyle = "#fff";
-    ctx.lineCap='round';
-    ctx.stroke();
-
-    ctx.restore();
-};
-
-var drawCookie = function(ctx,x,y) {
-    ctx.save();
-    ctx.translate(x,y);
-
-    // body
-    ctx.beginPath();
-    ctx.arc(0,0,6,0,Math.PI*2);
-    ctx.fillStyle = "#f9bd6d";
-    //ctx.fillStyle = "#dfab68";
-    ctx.fill();
-
-    // chocolate chips
-    var spots = [
-        0,-3,
-        -4,-1,
-        0,2,
-        3,0,
-        3,3,
-         ];
-
-    ctx.fillStyle = "#000";
-    var i,len;
-    for (i=0, len=spots.length; i<len; i+=2) {
-        var x = spots[i];
-        var y = spots[i+1];
-        ctx.beginPath();
-        ctx.arc(x,y,0.75,0,2*Math.PI);
-        ctx.fill();
-    }
-
-    ctx.restore();
-};
-
-var drawCookieFlash = function(ctx,x,y) {
-    ctx.save();
-    ctx.translate(x,y);
-
-    // body
-    ctx.beginPath();
-    ctx.arc(0,0,6,0,Math.PI*2);
-    ctx.fillStyle = "#000";
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "#f9bd6d";
-    ctx.fill();
-    ctx.stroke();
-
-    // chocolate chips
-    var spots = [
-        0,-3,
-        -4,-1,
-        0,2,
-        3,0,
-        3,3,
-         ];
-
-    ctx.fillStyle = "#f9bd6d";
-    var i,len;
-    for (i=0, len=spots.length; i<len; i+=2) {
-        var x = spots[i];
-        var y = spots[i+1];
-        ctx.beginPath();
-        ctx.arc(x,y,0.75,0,2*Math.PI);
-        ctx.fill();
-    }
-
-    ctx.restore();
-};
 
 var getSpriteFuncFromFruitName = function(name) {
     var funcs = {
-        'cherry': drawCherry,
-        'strawberry': drawStrawberry,
-        'orange': drawOrange,
-        'apple': drawApple,
-        'melon': drawMelon,
-        'galaxian': drawGalaxian,
-        'bell': drawBell,
-        'key': drawKey,
-        'pretzel': drawPretzel,
-        'pear': drawPear,
-        'banana': drawBanana,
-        'cookie': drawCookie,
+        'cherry': drawCherry
     };
 
     return funcs[name];
@@ -7428,7 +4960,7 @@ Ghost.prototype.getBounceY = (function(){
             dirEnum = this.dirEnum;
         }
 
-        if (this.mode != GHOST_OUTSIDE || !this.scared || gameMode != GAME_COOKIE) {
+        if (this.mode != GHOST_OUTSIDE || !this.scared) {
             return py;
         }
 
@@ -7914,12 +5446,12 @@ Player.prototype.getAnimFrame = function(frame) {
     if (frame == undefined) {
         frame = this.getStepFrame();
     }
-    if (gameMode == GAME_MSPACMAN || gameMode == GAME_COOKIE) { // ms. pacman starts with mouth open
+    if (gameMode == 1) { // ms. pacman starts with mouth open
         frame = (frame+1)%4;
         if (state == deadState)
             frame = 1; // hack to force this frame when dead
     }
-    if (gameMode != GAME_OTTO) {
+    if (gameMode != 3) {
         if (frame == 3) 
             frame = 1;
     }
@@ -8357,6 +5889,8 @@ pacman.getPathDistLeft = function(fromPixel, dirEnum) {
 };
 
 })();
+
+
 //@line 1 "src/ghostCommander.js"
 //////////////////////////////////////////////////////////////////////////////////////
 // Ghost Commander
@@ -9142,6 +6676,7 @@ var setFruitFromGameMode = (function() {
         }
     };
 })();
+
 //@line 1 "src/executive.js"
 var executive = (function(){
 
@@ -9439,7 +6974,6 @@ var learnState = (function(){
             btn.disable();
         });
         setAllVisibility(true);
-        clearCheats();
     };
 
     var menu = new Menu("LEARN", 2*tileSize,-tileSize,mapWidth-4*tileSize,3*tileSize,tileSize,tileSize+"px ArcadeR", "#EEE");
@@ -9595,7 +7129,7 @@ var gameTitleState = (function() {
     var resetTitle = function() {
         if (yellowBtn.isSelected) {
             name = getGameName();
-            nameColor = gameMode == GAME_COOKIE ? "#47b8ff" : pacman.color;
+            nameColor = pacman.color;
         }
         else if (redBtn.isSelected) {
             name = getGhostNames()[0];
@@ -9623,14 +7157,7 @@ var gameTitleState = (function() {
     var h = 30;
     var x = mapWidth/2 - 3*w;
     var y = 3*tileSize;
-    var yellowBtn = new Button(x,y,w,h,function() {
-        if (gameMode == GAME_MSPACMAN) {
-            gameMode = GAME_OTTO;
-        }
-        else if (gameMode == GAME_OTTO) {
-            gameMode = GAME_MSPACMAN;
-        }
-    });
+    var yellowBtn = new Button(x,y,w,h);
     yellowBtn.setIcon(function (ctx,x,y,frame) {
         getPlayerDrawFunc()(ctx,x,y,DIR_RIGHT,pacman.getAnimFrame(pacman.getStepFrame(Math.floor((gameMode==GAME_PACMAN?frame+4:frame)/1.5))),true);
     });
@@ -10202,7 +7729,6 @@ var newGameState = (function() {
 
     return {
         init: function() {
-            clearCheats();
             frames = 0;
             level = startLevel-1;
             extraLives = practiceMode ? Infinity : 3;
@@ -10283,12 +7809,6 @@ var readyNewState = newChildObject(readyState, {
         level++;
         if (gameMode == GAME_PACMAN) {
             map = mapPacman;
-        }
-        else if (gameMode == GAME_MSPACMAN || gameMode == GAME_OTTO) {
-            setNextMsPacMap();
-        }
-        else if (gameMode == GAME_COOKIE) {
-            setNextCookieMap();
         }
         map.resetCurrent();
         fruit.onNewLevel();
