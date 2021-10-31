@@ -2767,8 +2767,7 @@ var inGameMenu = (function() {
     };
 })();
 
-//@line 1 "src/sprites.js"
-//////////////////////////////////////////////////////////////////////////////////////
+
 // Sprites
 // (sprites are created using canvas paths)
 
@@ -3312,171 +3311,6 @@ var drawPacPoints = (function(){
             1600: draw1600,
             2000: draw2000,
             3000: draw3000,
-            5000: draw5000,
-        }[points];
-
-        if (f) {
-            f();
-        }
-
-        ctx.restore();
-    };
-})();
-
-// draw points displayed when ms. pac-man eats a fruit
-var drawMsPacPoints = (function(){
-    var ctx;
-    var color = "#fff";
-
-    var plotOutline = function(points,color) {
-        var len = points.length;
-        var i;
-        ctx.beginPath();
-        ctx.moveTo(points[0],points[1]);
-        for (i=2; i<len; i+=2) {
-            ctx.lineTo(points[i],points[i+1]);
-        }
-        ctx.closePath();
-        ctx.lineWidth = 1.0;
-        ctx.lineCap = ctx.lineJoin = "round";
-        ctx.strokeStyle = color;
-        ctx.stroke();
-    };
-
-    var plotLine = function(points,color) {
-        var len = points.length;
-        var i;
-        ctx.beginPath();
-        ctx.moveTo(points[0],points[1]);
-        for (i=2; i<len; i+=2) {
-            ctx.lineTo(points[i],points[i+1]);
-        }
-        ctx.lineWidth = 1.0;
-        ctx.lineCap = ctx.lineJoin = "round";
-        ctx.strokeStyle = color;
-        ctx.stroke();
-    };
-
-
-    var draw0 = function(x,y) {
-        ctx.save();
-        ctx.translate(x,y);
-        plotOutline([
-            0,0,
-            2,0,
-            2,4,
-            0,4,
-        ],color);
-        ctx.restore();
-    };
-
-    var draw1 = function(x,y) {
-        ctx.save();
-        ctx.translate(x,y);
-        plotLine([
-            1,0,
-            1,4,
-        ],color);
-        ctx.restore();
-    };
-
-    var draw2 = function(x,y) {
-        ctx.save();
-        ctx.translate(x,y);
-        plotLine([
-            0,0,
-            2,0,
-            2,2,
-            0,2,
-            0,4,
-            2,4,
-        ],color);
-        ctx.restore();
-    };
-
-    var draw5 = function(x,y) {
-        ctx.save();
-        ctx.translate(x,y);
-        plotLine([
-            2,0,
-            0,0,
-            0,2,
-            2,2,
-            2,4,
-            0,4,
-        ],color);
-        ctx.restore();
-    };
-
-    var draw7 = function(x,y) {
-        ctx.save();
-        ctx.translate(x,y);
-        plotLine([
-            0,0,
-            2,0,
-            2,4,
-        ],color);
-        ctx.restore();
-    };
-
-    var draw100 = function() {
-        draw1(-5,-5);
-        draw0(-1,-2);
-        draw0(3,1);
-    };
-
-    var draw200 = function() {
-        draw2(-5,-5);
-        draw0(-1,-2);
-        draw0(3,1);
-    };
-
-    var draw500 = function() {
-        draw5(-5,-5);
-        draw0(-1,-2);
-        draw0(3,1);
-    };
-
-    var draw700 = function() {
-        draw7(-5,-5);
-        draw0(-1,-2);
-        draw0(3,1);
-    };
-
-    var draw1000 = function() {
-        draw1(-7,-7);
-        draw0(-3,-4);
-        draw0(1,-1);
-        draw0(5,2);
-    };
-
-    var draw2000 = function() {
-        draw2(-7,-7);
-        draw0(-3,-4);
-        draw0(1,-1);
-        draw0(5,2);
-    };
-
-    var draw5000 = function() {
-        draw5(-7,-7);
-        draw0(-3,-4);
-        draw0(1,-1);
-        draw0(5,2);
-    };
-
-    return function(_ctx,x,y,points) {
-        ctx = _ctx;
-
-        ctx.save();
-        ctx.translate(x+0.5,y+0.5);
-
-        var f = {
-            100: draw100,
-            200: draw200,
-            500: draw500,
-            700: draw700,
-            1000: draw1000,
-            2000: draw2000,
             5000: draw5000,
         }[points];
 
@@ -4251,45 +4085,6 @@ var drawPacmanSprite = function(ctx,x,y,dirEnum,angle,mouthShift,scale,centerShi
     ctx.restore();
 };
 
-// draw giant pacman body
-var drawGiantPacmanSprite = function(ctx,x,y,dirEnum,frame) {
-
-    var color = "#FF0";
-    var mouthShift = 0;
-    var angle = 0;
-    if (frame == 1) {
-        mouthShift = -4;
-        angle = Math.atan(7/14);
-    }
-    else if (frame == 2) {
-        mouthShift = -2;
-        angle = Math.atan(13/9);
-    }
-
-    ctx.save();
-    ctx.translate(x,y);
-
-    // rotate to current heading direction
-    var d90 = Math.PI/2;
-    if (dirEnum == DIR_UP) ctx.rotate(3*d90);
-    else if (dirEnum == DIR_RIGHT) ctx.rotate(0);
-    else if (dirEnum == DIR_DOWN) ctx.rotate(d90);
-    else if (dirEnum == DIR_LEFT) ctx.rotate(2*d90);
-
-    // plant corner of mouth
-    ctx.beginPath();
-    ctx.moveTo(mouthShift,0);
-
-    // draw head outline
-    ctx.arc(0,0,16,angle,2*Math.PI-angle);
-    ctx.closePath();
-
-    ctx.fillStyle = color;
-    ctx.fill();
-
-    ctx.restore();
-};
-
 var drawMsPacmanSprite = function(ctx,x,y,dirEnum,frame,rot_angle) {
     var angle = 0;
 
@@ -4555,18 +4350,6 @@ var getSpriteFuncFromFruitName = function(name) {
     return funcs[name];
 };
 
-var drawRecordSymbol = function(ctx,x,y,color) {
-    ctx.save();
-    ctx.fillStyle = color;
-    ctx.translate(x,y);
-
-    ctx.beginPath();
-    ctx.arc(0,0,4,0,Math.PI*2);
-    ctx.fill();
-
-    ctx.restore();
-};
-
 var drawRewindSymbol = function(ctx,x,y,color) {
     ctx.save();
     ctx.fillStyle = color;
@@ -4716,7 +4499,9 @@ var drawExclamationPoint = function(ctx,x,y) {
 
     ctx.restore();
 };
-//@line 1 "src/Actor.js"
+
+
+
 //////////////////////////////////////////////////////////////////////////////////////
 // The actor class defines common data functions for the ghosts and pacman
 // It provides everything for updating position and direction.
@@ -4852,42 +4637,12 @@ Actor.prototype.getStepSizeFromTable = (function(){
     "0110110101101101" + // ghosts (fright)
     "0101010101010101" + // ghosts (tunnel)
     "1111111111111111" + // elroy 1
-    "1111111121111111" + // elroy 2
-
-                         // LEVELS 2-4
-    "1111211111112111" + // pac-man (normal)
-    "1111111121111111" + // ghosts (normal)
-    "1111211112111121" + // pac-man (fright)
-    "0110110110110111" + // ghosts (fright)
-    "0110101011010101" + // ghosts (tunnel)
-    "1111211111112111" + // elroy 1
-    "1111211112111121" + // elroy 2
-
-                         // LEVELS 5-20
-    "1121112111211121" + // pac-man (normal)
-    "1111211112111121" + // ghosts (normal)
-    "1121112111211121" + // pac-man (fright) (N/A for levels 17, 19 & 20)
-    "0111011101110111" + // ghosts (fright)  (N/A for levels 17, 19 & 20)
-    "0110110101101101" + // ghosts (tunnel)
-    "1121112111211121" + // elroy 1
-    "1121121121121121" + // elroy 2
-
-                         // LEVELS 21+
-    "1111211111112111" + // pac-man (normal)
-    "1111211112111121" + // ghosts (normal)
-    "0000000000000000" + // pac-man (fright) N/A
-    "0000000000000000" + // ghosts (fright)  N/A
-    "0110110101101101" + // ghosts (tunnel)
-    "1121112111211121" + // elroy 1
-    "1121121121121121"); // elroy 2
+    "1111111121111111" ); // elroy 2
 
     return function(level, pattern) {
         var entry;
         if (level < 1) return;
         else if (level==1)                  entry = 0;
-        else if (level >= 2 && level <= 4)  entry = 1;
-        else if (level >= 5 && level <= 20) entry = 2;
-        else if (level >= 21)               entry = 3;
         return stepSizes[entry*7*16 + pattern*16 + this.frames%16];
     };
 })();
@@ -4906,7 +4661,8 @@ Actor.prototype.update = function(j) {
     // update head direction
     this.steer();
 };
-//@line 1 "src/Ghost.js"
+
+
 //////////////////////////////////////////////////////////////////////////////////////
 // Ghost class
 
@@ -5223,7 +4979,7 @@ Ghost.prototype.homeSteer = (function(){
 
 })();
 
-// special case for Ms. Pac-Man game that randomly chooses a corner for blinky and pinky when scattering
+
 Ghost.prototype.isScatterBrain = function() {
     var scatter = false;
     return scatter;
@@ -5367,7 +5123,9 @@ Ghost.prototype.setTarget = function() {
         this.targetting = 'pacman';
     }
 };
-//@line 1 "src/Player.js"
+
+
+
 //////////////////////////////////////////////////////////////////////////////////////
 // Player is the controllable character (Pac-Man)
 
@@ -5592,7 +5350,8 @@ Player.prototype.update = function(j) {
         }
     }
 };
-//@line 1 "src/actors.js"
+
+
 //////////////////////////////////////////////////////////////////////////////////////
 // create all the actors
 
@@ -5629,7 +5388,7 @@ pacman.pathColor = "rgba(255,255,0,0.8)";
 // (suggests drawing/update order)
 var actors = [blinky, pinky, inky, clyde, pacman];
 var ghosts = [blinky, pinky, inky, clyde];
-//@line 1 "src/targets.js"
+
 /////////////////////////////////////////////////////////////////
 // Targetting
 // (a definition for each actor's targetting algorithm and a draw function to visualize it)
@@ -5891,7 +5650,6 @@ pacman.getPathDistLeft = function(fromPixel, dirEnum) {
 })();
 
 
-//@line 1 "src/ghostCommander.js"
 //////////////////////////////////////////////////////////////////////////////////////
 // Ghost Commander
 // Determines when a ghost should be chasing a target
@@ -5914,22 +5672,6 @@ var ghostCommander = (function() {
         times[0][t+=5*60] = GHOST_CMD_CHASE;
         times[0][t+=20*60] = GHOST_CMD_SCATTER;
         times[0][t+=5*60] = GHOST_CMD_CHASE;
-        // level 2-4
-        times[1][t=7*60] = GHOST_CMD_CHASE;
-        times[1][t+=20*60] = GHOST_CMD_SCATTER;
-        times[1][t+=7*60] = GHOST_CMD_CHASE;
-        times[1][t+=20*60] = GHOST_CMD_SCATTER;
-        times[1][t+=5*60] = GHOST_CMD_CHASE;
-        times[1][t+=1033*60] = GHOST_CMD_SCATTER;
-        times[1][t+=1] = GHOST_CMD_CHASE;
-        // level 5+
-        times[2][t=5*60] = GHOST_CMD_CHASE;
-        times[2][t+=20*60] = GHOST_CMD_SCATTER;
-        times[2][t+=5*60] = GHOST_CMD_CHASE;
-        times[2][t+=20*60] = GHOST_CMD_SCATTER;
-        times[2][t+=5*60] = GHOST_CMD_CHASE;
-        times[2][t+=1037*60] = GHOST_CMD_SCATTER;
-        times[2][t+=1] = GHOST_CMD_CHASE;
 
         return function(frame) {
             var i;
@@ -5997,7 +5739,7 @@ var ghostCommander = (function() {
         },
     };
 })();
-//@line 1 "src/ghostReleaser.js"
+
 //////////////////////////////////////////////////////////////////////////////////////
 // Ghost Releaser
 
@@ -6151,7 +5893,7 @@ var ghostReleaser = (function(){
         },
     };
 })();
-//@line 1 "src/elroyTimer.js"
+
 //////////////////////////////////////////////////////////////////////////////////////
 // Elroy Timer
 
@@ -6219,7 +5961,7 @@ var elroyTimer = (function(){
         load: load,
     };
 })();
-//@line 1 "src/energizer.js"
+
 //////////////////////////////////////////////////////////////////////////////////////
 // Energizer
 
@@ -6329,7 +6071,7 @@ var energizer = (function() {
         updatePointsTimer: function() { if (pointsFramesLeft > 0) pointsFramesLeft--; },
     };
 })();
-//@line 1 "src/fruit.js"
+
 //////////////////////////////////////////////////////////////////////////////////////
 // Fruit
 
@@ -6398,30 +6140,11 @@ BaseFruit.prototype = {
 var PacFruit = function() {
     BaseFruit.call(this);
     this.fruits = [
-        {name:'cherry',     points:100},
-        {name:'strawberry', points:300},
-        {name:'orange',     points:500},
-        {name:'apple',      points:700},
-        {name:'melon',      points:1000},
-        {name:'galaxian',   points:2000},
-        {name:'bell',       points:3000},
-        {name:'key',        points:5000},
+        {name:'cherry',     points:100}
     ];
 
     this.order = [
-        0,  // level 1
-        1,  // level 2 
-        2,  // level 3
-        2,  // level 4
-        3,  // level 5
-        3,  // level 6
-        4,  // level 7
-        4,  // level 8
-        5,  // level 9
-        5,  // level 10
-        6,  // level 11
-        6,  // level 12
-        7]; // level 13+
+        0  ];
 
     this.dotLimit1 = 70;
     this.dotLimit2 = 170;
@@ -6502,13 +6225,7 @@ var PATH_EXIT = 2;
 var MsPacFruit = function() {
     BaseFruit.call(this);
     this.fruits = [
-        {name: 'cherry',     points: 100},
-        {name: 'strawberry', points: 200},
-        {name: 'orange',     points: 500},
-        {name: 'pretzel',    points: 700},
-        {name: 'apple',      points: 1000},
-        {name: 'pear',       points: 2000},
-        {name: 'banana',     points: 5000},
+        {name: 'cherry',     points: 100}
     ];
 
     this.dotLimit1 = 64;
@@ -6677,7 +6394,7 @@ var setFruitFromGameMode = (function() {
     };
 })();
 
-//@line 1 "src/executive.js"
+
 var executive = (function(){
 
     var framePeriod = 1000/60; // length of each frame at 60Hz (updates per second)
@@ -6686,12 +6403,6 @@ var executive = (function(){
     var paused = false; // flag for pausing the state updates, while still drawing
     var running = false; // flag for truly stopping everything
 
-    /**********/
-    // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
-    // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
-
-    // requestAnimationFrame polyfill by Erik Möller
-    // fixes from Paul Irish and Tino Zijdel
 
     (function() {
         var lastTime = 0;
@@ -6717,7 +6428,7 @@ var executive = (function(){
                 clearTimeout(id);
             };
     }());
-    /**********/
+
 
     var fps;
     var updateFps = (function(){
@@ -6820,7 +6531,7 @@ var executive = (function(){
         getFps: function() { return fps; },
     };
 })();
-//@line 1 "src/states.js"
+
 //////////////////////////////////////////////////////////////////////////////////////
 // States
 // (main loops for each state of the game)
@@ -7054,8 +6765,6 @@ var learnState = (function(){
 
             // set game parameters
             level = 1;
-            // practiceMode = false;
-            // turboMode = false;
             gameMode = GAME_PACMAN;
 
             // reset relevant game state
@@ -7257,19 +6966,6 @@ var preNewGameState = (function() {
             newGameState.setStartLevel(1);
             exitTo(newGameState, 60);
         });
-    // menu.addTextButton("PLAY TURBO",
-    //     function() { 
-    //         practiceMode = false;
-    //         turboMode = true;
-    //         newGameState.setStartLevel(1);
-    //         exitTo(newGameState, 60);
-    //     });
-    // menu.addTextButton("PRACTICE",
-    //     function() { 
-    //         practiceMode = true;
-    //         turboMode = false;
-    //         exitTo(selectActState);
-    //     });
     menu.addTextButton("BACK",
         function() {
             exitTo(homeState);
@@ -7296,427 +6992,6 @@ var preNewGameState = (function() {
         },
     };
 })();
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Select Act State
-
-var selectActState = (function() {
-
-    // TODO: create ingame menu option to return to this menu (with last act played present)
-
-    var menu;
-    var numActs = 4;
-    var defaultStartAct = 1;
-    var startAct = defaultStartAct;
-
-    var exitTo = function(state,fade) {
-        gameTitleState.shutdown();
-        menu.disable();
-        switchState(state,fade);
-    };
-
-    var chooseLevelFromAct = function(act) {
-        selectLevelState.setAct(act);
-        exitTo(selectLevelState);
-    };
-
-    var scrollToAct = function(act) {
-        // just rebuild the menu
-        selectActState.setStartAct(act);
-        exitTo(selectActState);
-    };
-
-    var drawArrow = function(ctx,x,y,dir) {
-        ctx.save();
-        ctx.translate(x,y);
-        ctx.scale(1,dir);
-        ctx.beginPath();
-        ctx.moveTo(0,-tileSize/2);
-        ctx.lineTo(tileSize,tileSize/2);
-        ctx.lineTo(-tileSize,tileSize/2);
-        ctx.closePath();
-        ctx.fillStyle = "#FFF";
-        ctx.fill();
-        ctx.restore();
-    };
-
-    var buildMenu = function(act) {
-        // set buttons starting at the given act
-        startAct = act;
-
-        menu = new Menu("",2*tileSize,0,mapWidth-4*tileSize,3*tileSize,tileSize,tileSize+"px ArcadeR", "#EEE");
-        var i;
-        var range;
-        menu.addSpacer(2);
-        menu.addIconButton(
-            function(ctx,x,y) {
-                drawArrow(ctx,x,y,1);
-            },
-            function() {
-                scrollToAct(Math.max(1,act-numActs));
-            });
-        for (i=0; i<numActs; i++) {
-            range = getActRange(act+i);
-            menu.addTextIconButton("LEVELS "+range[0]+"-"+range[1],
-                (function(j){
-                    return function() { 
-                        chooseLevelFromAct(act+j);
-                    };
-                })(i),
-                (function(j){
-                    return function(ctx,x,y) {
-                        var s = tileSize/3*2;
-                        var r = tileSize/6;
-                        ctx.save();
-                        ctx.translate(x,y);
-                        ctx.beginPath();
-                        ctx.moveTo(-s,0);
-                        ctx.lineTo(-s,-r);
-                        ctx.quadraticCurveTo(-s,-s,-r,-s);
-                        ctx.lineTo(r,-s);
-                        ctx.quadraticCurveTo(s,-s,s,-r);
-                        ctx.lineTo(s,r);
-                        ctx.quadraticCurveTo(s,s,r,s);
-                        ctx.lineTo(-r,s);
-                        ctx.quadraticCurveTo(-s,s,-s,r);
-                        ctx.closePath();
-                        var colors = getActColor(act+j);
-                        ctx.fillStyle = colors.wallFillColor;
-                        ctx.strokeStyle = colors.wallStrokeColor;
-                        ctx.fill();
-                        ctx.stroke();
-                        ctx.restore();
-                    };
-                })(i));
-        }
-        menu.addIconButton(
-            function(ctx,x,y) {
-                drawArrow(ctx,x,y,-1);
-            },
-            function() {
-                scrollToAct(act+numActs);
-            });
-        menu.addTextButton("BACK",
-            function() {
-                exitTo(preNewGameState);
-            });
-        menu.backButton = menu.buttons[menu.buttonCount-1];
-        menu.enable();
-    };
-
-    return {
-        init: function() {
-            buildMenu(startAct);
-            gameTitleState.init();
-        },
-        setStartAct: function(act) {
-            startAct = act;
-        },
-        draw: function() {
-            renderer.clearMapFrame();
-            renderer.renderFunc(menu.draw,menu);
-            gameTitleState.draw();
-        },
-        update: function() {
-            gameTitleState.update();
-        },
-        getMenu: function() {
-            return menu;
-        },
-    };
-})();
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Select Level State
-
-var selectLevelState = (function() {
-
-    var menu;
-    var act = 1;
-
-    var exitTo = function(state,fade) {
-        gameTitleState.shutdown();
-        menu.disable();
-        switchState(state,fade);
-    };
-
-    var playLevel = function(i) {
-        // TODO: set level (will have to set up fruit history correctly)
-        newGameState.setStartLevel(i);
-        exitTo(newGameState, 60);
-    };
-
-    var buildMenu = function(act) {
-        var range = getActRange(act);
-
-        menu = new Menu("",2*tileSize,0,mapWidth-4*tileSize,3*tileSize,tileSize,tileSize+"px ArcadeR", "#EEE");
-        var i;
-        menu.addSpacer(2);
-        if (range[0] < range[1]) {
-            for (i=range[0]; i<=range[1]; i++) {
-                menu.addTextIconButton("LEVEL "+i,
-                    (function(j){
-                        return function() { 
-                            playLevel(j);
-                        };
-                    })(i),
-                    (function(j){
-                        return function(ctx,x,y) {
-                            var f = fruit.getFruitFromLevel(j);
-                            if (f) {
-                                atlas.drawFruitSprite(ctx,x,y,f.name);
-                            }
-                        };
-                    })(i));
-            }
-        }
-        menu.addSpacer(0.5);
-        menu.addTextButton("BACK",
-            function() {
-                exitTo(selectActState);
-            });
-        menu.backButton = menu.buttons[menu.buttonCount-1];
-        menu.enable();
-    };
-
-    return {
-        init: function() {
-            setFruitFromGameMode();
-            buildMenu(act);
-            gameTitleState.init();
-        },
-        setAct: function(a) {
-            act = a;
-        },
-        draw: function() {
-            renderer.clearMapFrame();
-            renderer.renderFunc(menu.draw,menu);
-            gameTitleState.draw();
-        },
-        update: function() {
-            gameTitleState.update();
-        },
-        getMenu: function() {
-            return menu;
-        },
-    };
-})();
-
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Score State
-// (the high score screen state)
-
-var scoreState = (function(){
-
-    var exitTo = function(s) {
-        switchState(s);
-        menu.disable();
-    };
-
-    var menu = new Menu("", 2*tileSize,mapHeight-6*tileSize,mapWidth-4*tileSize,3*tileSize,tileSize,tileSize+"px ArcadeR", "#EEE");
-    menu.addTextButton("BACK",
-        function() {
-            exitTo(homeState);
-        });
-    menu.backButton = menu.buttons[menu.buttonCount-1];
-
-    var frame = 0;
-
-    var bulbs = {};
-    var numBulbs;
-    (function(){
-        var x = -1.5*tileSize;
-        var y = -1*tileSize;
-        var w = 18*tileSize;
-        var h = 29*tileSize;
-        var s = 3;
-
-        var i=0;
-        var x0 = x;
-        var y0 = y;
-        var addBulb = function(x,y) { bulbs[i++] = { x:x, y:y }; };
-        for (; y0<y+h; y0+=s) { addBulb(x0,y0); }
-        for (; x0<x+w; x0+=s) { addBulb(x0,y0); }
-        for (; y0>y; y0-=s) { addBulb(x0,y0); }
-        for (; x0>x; x0-=s) { addBulb(x0,y0); }
-
-        numBulbs = i;
-    })();
-
-    var drawScoreBox = function(ctx) {
-
-        // draw chaser lights around the marquee
-        ctx.fillStyle = "#555";
-        var i,b,s=2;
-        for (i=0; i<numBulbs; i++) {
-            b = bulbs[i];
-            ctx.fillRect(b.x, b.y, s, s);
-        }
-        ctx.fillStyle = "#FFF";
-        for (i=0; i<63; i++) {
-            b = bulbs[(i*4+Math.floor(frame/2))%numBulbs];
-            ctx.fillRect(b.x, b.y, s, s);
-        }
-
-        ctx.font = tileSize+"px ArcadeR";
-        ctx.textBaseline = "top";
-        ctx.textAlign = "right";
-        var scoreColor = "#AAA";
-        var captionColor = "#444";
-
-        var x,y;
-        x = 9*tileSize;
-        y = 0;
-        ctx.fillStyle = "#FFF"; ctx.fillText("HIGH SCORES", x+4*tileSize,y);
-        y += tileSize*4;
-
-        var drawContrails = function(x,y) {
-            ctx.lineWidth = 1.0;
-            ctx.lineCap = "round";
-            ctx.strokeStyle = "rgba(255,255,255,0.5)";
-
-            ctx.save();
-            ctx.translate(-2.5,0);
-
-            var dy;
-            for (dy=-4; dy<=4; dy+=2) {
-                ctx.beginPath();
-                ctx.moveTo(x+tileSize,y+dy);
-                ctx.lineTo(x+tileSize*(Math.random()*0.5+1.5),y+dy);
-                ctx.stroke();
-            }
-            ctx.restore();
-
-        };
-
-        ctx.fillStyle = scoreColor; ctx.fillText(highScores[0], x,y);
-        atlas.drawPacmanSprite(ctx,x+2*tileSize,y+tileSize/2,DIR_LEFT,1);
-        y += tileSize*2;
-        ctx.fillStyle = scoreColor; ctx.fillText(highScores[1], x,y);
-        drawContrails(x+2*tileSize,y+tileSize/2);
-        atlas.drawPacmanSprite(ctx,x+2*tileSize,y+tileSize/2,DIR_LEFT,1);
-
-        y += tileSize*3;
-        ctx.fillStyle = scoreColor; ctx.fillText(highScores[2], x,y);
-        atlas.drawMsPacmanSprite(ctx,x+2*tileSize,y+tileSize/2,DIR_LEFT,1);
-        y += tileSize*2;
-        ctx.fillStyle = scoreColor; ctx.fillText(highScores[3], x,y);
-        drawContrails(x+2*tileSize,y+tileSize/2);
-        atlas.drawMsPacmanSprite(ctx,x+2*tileSize,y+tileSize/2,DIR_LEFT,1);
-
-        y += tileSize*3;
-        ctx.fillStyle = scoreColor; ctx.fillText(highScores[6], x,y);
-        atlas.drawOttoSprite(ctx,x+2*tileSize,y+tileSize/2,DIR_LEFT,0);
-        y += tileSize*2;
-        ctx.fillStyle = scoreColor; ctx.fillText(highScores[7], x,y);
-        drawContrails(x+2*tileSize,y+tileSize/2);
-        atlas.drawOttoSprite(ctx,x+2*tileSize,y+tileSize/2,DIR_LEFT,0);
-
-        y += tileSize*3;
-        ctx.fillStyle = scoreColor; ctx.fillText(highScores[4], x,y);
-        atlas.drawCookiemanSprite(ctx,x+2*tileSize,y+tileSize/2,DIR_LEFT,1);
-        y += tileSize*2;
-        ctx.fillStyle = scoreColor; ctx.fillText(highScores[5], x,y);
-        drawContrails(x+2*tileSize,y+tileSize/2);
-        atlas.drawCookiemanSprite(ctx,x+2*tileSize,y+tileSize/2,DIR_LEFT,1);
-    };
-
-    var drawFood = function(ctx) {
-        ctx.globalAlpha = 0.5;
-        ctx.font = tileSize + "px sans-serif";
-        ctx.textBaseline = "middle";
-        ctx.textAlign = "left";
-
-        var x = 20*tileSize;
-        var y = 0;
-
-        ctx.fillStyle = "#ffb8ae";
-        ctx.fillRect(x-1,y-1.5,2,2);
-        ctx.fillStyle = "#FFF";
-        ctx.fillText("10",x+tileSize,y);
-        y += 1.5*tileSize;
-
-        ctx.fillStyle = "#ffb8ae";
-        ctx.beginPath();
-        ctx.arc(x,y-0.5,tileSize/2,0,Math.PI*2);
-        ctx.fill();
-        ctx.fillStyle = "#FFF";
-        ctx.fillText("50",x+tileSize,y);
-
-        y += 3*tileSize;
-        atlas.drawGhostSprite(ctx,x,y,0,DIR_RIGHT,true);
-        atlas.drawGhostPoints(ctx,x+2*tileSize,y,200);
-
-        var alpha = ctx.globalAlpha;
-
-        y += 2*tileSize;
-        ctx.globalAlpha = alpha*0.5;
-        atlas.drawGhostSprite(ctx,x,y,0,DIR_RIGHT,true);
-        ctx.globalAlpha = alpha;
-        atlas.drawGhostSprite(ctx,x+2*tileSize,y,0,DIR_RIGHT,true);
-        atlas.drawGhostPoints(ctx,x+4*tileSize,y,400);
-
-        y += 2*tileSize;
-        ctx.globalAlpha = alpha*0.5;
-        atlas.drawGhostSprite(ctx,x,y,0,DIR_RIGHT,true);
-        atlas.drawGhostSprite(ctx,x+2*tileSize,y,0,DIR_RIGHT,true);
-        ctx.globalAlpha = alpha;
-        atlas.drawGhostSprite(ctx,x+4*tileSize,y,0,DIR_RIGHT,true);
-        atlas.drawGhostPoints(ctx,x+6*tileSize,y,800);
-
-        y += 2*tileSize;
-        ctx.globalAlpha = alpha*0.5;
-        atlas.drawGhostSprite(ctx,x,y,0,DIR_RIGHT,true);
-        atlas.drawGhostSprite(ctx,x+2*tileSize,y,0,DIR_RIGHT,true);
-        atlas.drawGhostSprite(ctx,x+4*tileSize,y,0,DIR_RIGHT,true);
-        ctx.globalAlpha = alpha;
-        atlas.drawGhostSprite(ctx,x+6*tileSize,y,0,DIR_RIGHT,true);
-        atlas.drawGhostPoints(ctx,x+8*tileSize,y,1600);
-
-        var pac_fruits = [
-            {name:'cherry',     points:100},
-            {name:'strawberry', points:300},
-            {name:'orange',     points:500},
-            {name:'apple',      points:700},
-            {name:'melon',      points:1000},
-            {name:'galaxian',   points:2000},
-            {name:'bell',       points:3000},
-            {name:'key',        points:5000},
-        ];
-
-        var i,f;
-        y += 3*tileSize;
-        for (i=0; i<pac_fruits.length; i++) {
-            f = pac_fruits[i];
-            atlas.drawFruitSprite(ctx,x,y,f.name);
-            atlas.drawPacFruitPoints(ctx,x+2*tileSize,y,f.points);
-            y += 2*tileSize;
-        }
-        ctx.globalAlpha = 1;
-    };
-
-    return {
-        init: function() {
-            menu.enable();
-        },
-        draw: function() {
-            renderer.clearMapFrame();
-            renderer.renderFunc(drawScoreBox);
-            renderer.renderFunc(drawFood);
-            renderer.renderFunc(menu.draw,menu);
-        },
-        update: function() {
-            menu.update();
-            frame++;
-        },
-        getMenu: function() {
-            return menu;
-        },
-    };
-
-})();
-
 
 ////////////////////////////////////////////////////
 // New Game state
@@ -8197,7 +7472,7 @@ var overState = (function() {
     };
 })();
 
-//@line 1 "src/input.js"
+
 //////////////////////////////////////////////////////////////////////////////////////
 // Input
 // (Handles all key presses and touches)
@@ -8474,7 +7749,7 @@ var initSwipe = function() {
 };
 
 
-//@line 1 "src/maps.js"
+
 //////////////////////////////////////////////////////////////////////////////////////
 // Maps
 
@@ -8636,11 +7911,9 @@ mapPacman.constrainGhostTurns = function(tile,openTiles) {
 };
 
 
-//@line 1 "src/vcr.js"
 //////////////////////////////////////////////////////////////////////////////////////
 // VCR
 // This coordinates the recording, rewinding, and replaying of the game state.
-// Inspired by Braid.
 
 var VCR_NONE = -1;
 var VCR_RECORD = 0;
@@ -9046,7 +8319,7 @@ var vcr = (function() {
     };
 })();
 
-//@line 1 "src/main.js"
+
 //////////////////////////////////////////////////////////////////////////////////////
 // Entry Point
 
