@@ -5385,14 +5385,14 @@ pacman.color = "#FFFF00";
 pacman.pathColor = "rgba(255,255,0,0.8)";
 
 // order at which they appear in original arcade memory
-// (suggests drawing/update order)
+// suggests drawing/update order
 var actors = [blinky, pinky, inky, clyde, pacman];
 var ghosts = [blinky, pinky, inky, clyde];
 
 /////////////////////////////////////////////////////////////////
 // Targetting
-// (a definition for each actor's targetting algorithm and a draw function to visualize it)
-// (getPathDistLeft is used to obtain a smoothly interpolated path endpoint)
+// a definition for each actor's targetting algorithm and a draw function to visualize it
+
 
 // the tile length of the path drawn toward the target
 var actorPathLength = 16;
