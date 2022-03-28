@@ -1,3 +1,3 @@
 # pacman
 
-A simple game of pacman with Ghosts AI implementated in HTML, CSS and JavaScript.
+A simple game of pacman with Ghosts AI implementated using HTML, CSS and JavaScript.
